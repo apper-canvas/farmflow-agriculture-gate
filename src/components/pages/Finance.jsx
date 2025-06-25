@@ -444,13 +444,13 @@ const Finance = () => {
     setEditingTransaction(null);
 };
 
-  const handleExport = async (format) => {
+const handleExport = async (exportFormat) => {
     setExporting(true);
     setShowExportMenu(false);
     
     try {
       const dataToExport = filteredTransactions.map(transaction => ({
-        Date: format === 'csv' ? transaction.date : format(new Date(transaction.date), 'MMM dd, yyyy'),
+        Date: exportFormat === 'csv' ? transaction.date : format(new Date(transaction.date), 'MMM dd, yyyy'),
         Description: transaction.description,
         Farm: farms.find(f => f.Id === transaction.farmId)?.name || 'Unknown Farm',
         Category: transaction.category,
@@ -458,7 +458,7 @@ const Finance = () => {
         Amount: transaction.amount
       }));
 
-      if (format === 'csv') {
+      if (exportFormat === 'csv') {
         const csvContent = [
           'Date,Description,Farm,Category,Type,Amount',
           ...dataToExport.map(row => 
@@ -475,11 +475,11 @@ const Finance = () => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-      } else if (format === 'pdf') {
+      } else if (exportFormat === 'pdf') {
         toast.info('PDF export functionality will be implemented soon');
       }
       
-      toast.success(`Data exported successfully as ${format.toUpperCase()}`);
+      toast.success(`Data exported successfully as ${exportFormat.toUpperCase()}`);
     } catch (error) {
       console.error('Export failed:', error);
       toast.error('Failed to export data');
