@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { isToday, isTomorrow, isOverdue } from 'date-fns';
+import { isToday, isTomorrow, isPast } from 'date-fns';
+
+// Custom function to check if a date is overdue (past but not today)
+const isOverdue = (date) => {
+  return isPast(date) && !isToday(date);
+};
 import ApperIcon from '@/components/ApperIcon';
 import StatCard from '@/components/molecules/StatCard';
 import SkeletonLoader from '@/components/molecules/SkeletonLoader';
