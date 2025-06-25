@@ -9,8 +9,9 @@ import Select from '@/components/atoms/Select';
 import farmService from '@/services/api/farmService';
 
 const CropForm = ({ crop, onSubmit, onCancel, isOpen }) => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     farmId: '',
+    name: '',
     cropType: '',
     field: '',
     plantingDate: '',
@@ -55,9 +56,10 @@ const CropForm = ({ crop, onSubmit, onCancel, isOpen }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    if (crop) {
+if (crop) {
       setFormData({
         farmId: crop.farmId?.toString() || '',
+        name: crop.name || '',
         cropType: crop.cropType || '',
         field: crop.field || '',
         plantingDate: crop.plantingDate ? format(new Date(crop.plantingDate), 'yyyy-MM-dd') : '',
@@ -68,6 +70,7 @@ const CropForm = ({ crop, onSubmit, onCancel, isOpen }) => {
     } else {
       setFormData({
         farmId: '',
+        name: '',
         cropType: '',
         field: '',
         plantingDate: '',
@@ -90,7 +93,8 @@ const CropForm = ({ crop, onSubmit, onCancel, isOpen }) => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.farmId) newErrors.farmId = 'Farm is required';
+if (!formData.farmId) newErrors.farmId = 'Farm is required';
+    if (!formData.name) newErrors.name = 'Name is required';
     if (!formData.cropType) newErrors.cropType = 'Crop type is required';
     if (!formData.field) newErrors.field = 'Field is required';
     if (!formData.plantingDate) newErrors.plantingDate = 'Planting date is required';
@@ -179,7 +183,7 @@ const CropForm = ({ crop, onSubmit, onCancel, isOpen }) => {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+<form onSubmit={handleSubmit} className="space-y-4">
             <Select
               label="Farm"
               name="farmId"
@@ -187,6 +191,16 @@ const CropForm = ({ crop, onSubmit, onCancel, isOpen }) => {
               onChange={handleChange}
               options={farms.map(farm => ({ value: farm.Id.toString(), label: farm.name }))}
               error={errors.farmId}
+              required
+            />
+
+            <Input
+              label="Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="e.g., Spring Corn 2024, Greenhouse Tomatoes"
+              error={errors.name}
               required
             />
 
@@ -199,7 +213,6 @@ const CropForm = ({ crop, onSubmit, onCancel, isOpen }) => {
               error={errors.cropType}
               required
             />
-
             <Input
               label="Field"
               name="field"

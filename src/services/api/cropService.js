@@ -1,4 +1,5 @@
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
+import React from "react";
 
 const cropService = {
   async getAll() {
@@ -36,8 +37,9 @@ const cropService = {
       }
 
       // Transform data to match UI expectations
-      return response.data.map(crop => ({
+return response.data.map(crop => ({
         Id: crop.Id,
+        name: crop.Name,
         farmId: crop.farm_id,
         cropType: crop.crop_type,
         field: crop.field,
@@ -80,9 +82,10 @@ const cropService = {
       }
 
       // Transform data to match UI expectations
-      const crop = response.data;
+const crop = response.data;
       return {
         Id: crop.Id,
+        name: crop.Name,
         farmId: crop.farm_id,
         cropType: crop.crop_type,
         field: crop.field,
@@ -137,8 +140,9 @@ const cropService = {
       }
 
       // Transform data to match UI expectations
-      return response.data.map(crop => ({
+return response.data.map(crop => ({
         Id: crop.Id,
+        name: crop.Name,
         farmId: crop.farm_id,
         cropType: crop.crop_type,
         field: crop.field,
@@ -162,8 +166,8 @@ const cropService = {
       });
 
       const params = {
-        records: [{
-          Name: cropData.cropType,
+records: [{
+          Name: cropData.name,
           crop_type: cropData.cropType,
           field: cropData.field,
           planting_date: cropData.plantingDate,
@@ -199,8 +203,9 @@ const cropService = {
 
         if (successfulRecords.length > 0) {
           const crop = successfulRecords[0].data;
-          return {
+return {
             Id: crop.Id,
+            name: crop.Name,
             farmId: crop.farm_id,
             cropType: crop.crop_type,
             field: crop.field,
@@ -228,9 +233,9 @@ const cropService = {
       });
 
       const params = {
-        records: [{
+records: [{
           Id: parseInt(id, 10),
-          Name: cropData.cropType,
+          Name: cropData.name,
           crop_type: cropData.cropType,
           field: cropData.field,
           planting_date: cropData.plantingDate,
@@ -264,10 +269,11 @@ const cropService = {
           });
         }
 
-        if (successfulUpdates.length > 0) {
+if (successfulUpdates.length > 0) {
           const crop = successfulUpdates[0].data;
           return {
             Id: crop.Id,
+            name: crop.Name,
             farmId: crop.farm_id,
             cropType: crop.crop_type,
             field: crop.field,
