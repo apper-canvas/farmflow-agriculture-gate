@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
-import { format } from 'date-fns';
-import ApperIcon from '@/components/ApperIcon';
-import Button from '@/components/atoms/Button';
-import Input from '@/components/atoms/Input';
-import Select from '@/components/atoms/Select';
-import Badge from '@/components/atoms/Badge';
-import Card from '@/components/atoms/Card';
-import StatCard from '@/components/molecules/StatCard';
-import SkeletonLoader from '@/components/molecules/SkeletonLoader';
-import ErrorState from '@/components/molecules/ErrorState';
-import EmptyState from '@/components/molecules/EmptyState';
-import transactionService from '@/services/api/transactionService';
-import farmService from '@/services/api/farmService';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
+import farmService from "@/services/api/farmService";
+import transactionService from "@/services/api/transactionService";
+import ApperIcon from "@/components/ApperIcon";
+import SkeletonLoader from "@/components/molecules/SkeletonLoader";
+import EmptyState from "@/components/molecules/EmptyState";
+import ErrorState from "@/components/molecules/ErrorState";
+import StatCard from "@/components/molecules/StatCard";
+import Card from "@/components/atoms/Card";
+import Badge from "@/components/atoms/Badge";
+import Select from "@/components/atoms/Select";
+import Button from "@/components/atoms/Button";
+import Input from "@/components/atoms/Input";
 
 const TransactionForm = ({ transaction, farms, onSubmit, onCancel, isOpen }) => {
   const [formData, setFormData] = useState({
@@ -366,12 +366,13 @@ const Finance = () => {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [filters, setFilters] = useState({
     type: 'all',
     farm: 'all',
     search: ''
   });
-
   useEffect(() => {
     loadData();
   }, []);
@@ -441,6 +442,50 @@ const Finance = () => {
     
     setShowForm(false);
     setEditingTransaction(null);
+};
+
+  const handleExport = async (format) => {
+    setExporting(true);
+    setShowExportMenu(false);
+    
+    try {
+      const dataToExport = filteredTransactions.map(transaction => ({
+        Date: format === 'csv' ? transaction.date : format(new Date(transaction.date), 'MMM dd, yyyy'),
+        Description: transaction.description,
+        Farm: farms.find(f => f.Id === transaction.farmId)?.name || 'Unknown Farm',
+        Category: transaction.category,
+        Type: transaction.type,
+        Amount: transaction.amount
+      }));
+
+      if (format === 'csv') {
+        const csvContent = [
+          'Date,Description,Farm,Category,Type,Amount',
+          ...dataToExport.map(row => 
+            `${row.Date},"${row.Description}","${row.Farm}","${row.Category}","${row.Type}",${row.Amount}`
+          )
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else if (format === 'pdf') {
+        toast.info('PDF export functionality will be implemented soon');
+      }
+      
+      toast.success(`Data exported successfully as ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export data');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const filteredTransactions = transactions.filter(transaction => {
@@ -451,7 +496,6 @@ const Finance = () => {
     
     return matchesType && matchesFarm && matchesSearch;
   });
-
   const farmOptions = [
     { value: 'all', label: 'All Farms' },
     ...farms.map(farm => ({ value: farm.Id.toString(), label: farm.name }))
@@ -504,13 +548,46 @@ const Finance = () => {
           <h1 className="text-2xl font-bold text-gray-900">Finance</h1>
           <p className="text-gray-600">Track your farm income and expenses</p>
         </div>
-        <Button
-          onClick={handleAddTransaction}
-          icon="Plus"
-          className="w-full sm:w-auto"
-        >
-          Add Transaction
-        </Button>
+<div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative">
+            <Button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              variant="outline"
+              icon="Download"
+              loading={exporting}
+              className="w-full sm:w-auto"
+            >
+              Export Data
+            </Button>
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-surface-200 z-10">
+                <div className="py-1">
+                  <button
+                    onClick={() => handleExport('csv')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-surface-50 flex items-center"
+                  >
+                    <ApperIcon name="FileText" size={16} className="mr-3" />
+                    Export as CSV
+                  </button>
+                  <button
+                    onClick={() => handleExport('pdf')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-surface-50 flex items-center"
+                  >
+                    <ApperIcon name="FileDown" size={16} className="mr-3" />
+                    Export as PDF
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <Button
+            onClick={handleAddTransaction}
+            icon="Plus"
+            className="w-full sm:w-auto"
+          >
+            Add Transaction
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}

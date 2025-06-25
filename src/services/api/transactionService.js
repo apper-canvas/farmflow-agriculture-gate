@@ -79,8 +79,95 @@ const transactionService = {
     if (index === -1) {
       throw new Error('Transaction not found');
     }
-    const deletedTransaction = transactions.splice(index, 1)[0];
+const deletedTransaction = transactions.splice(index, 1)[0];
     return { ...deletedTransaction };
+  },
+
+  async exportToCSV(transactionsData, farms) {
+    await delay(300);
+    
+    const getFarmName = (farmId) => {
+      const farm = farms.find(f => f.Id === farmId);
+      return farm?.name || 'Unknown Farm';
+    };
+
+    const csvHeaders = ['Date', 'Description', 'Farm', 'Category', 'Type', 'Amount'];
+    const csvRows = transactionsData.map(transaction => [
+      new Date(transaction.date).toLocaleDateString(),
+      transaction.description,
+      getFarmName(transaction.farmId),
+      transaction.category,
+      transaction.type,
+      transaction.amount
+    ]);
+
+    const csvContent = [csvHeaders, ...csvRows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `financial-data-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    return true;
+  },
+
+  async exportToPDF(transactionsData, farms, summary) {
+    await delay(500);
+    
+    const { jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
+    
+    const getFarmName = (farmId) => {
+      const farm = farms.find(f => f.Id === farmId);
+      return farm?.name || 'Unknown Farm';
+    };
+
+    const doc = new jsPDF();
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text('Financial Report', 20, 20);
+    
+    // Date
+    doc.setFontSize(12);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+    
+    // Summary
+    if (summary) {
+      doc.text(`Total Income: $${summary.income.toLocaleString()}`, 20, 45);
+      doc.text(`Total Expenses: $${summary.expenses.toLocaleString()}`, 20, 52);
+      doc.text(`Net Profit: $${summary.profit.toLocaleString()}`, 20, 59);
+    }
+    
+    // Table
+    const tableColumns = ['Date', 'Description', 'Farm', 'Category', 'Type', 'Amount'];
+    const tableRows = transactionsData.map(transaction => [
+      new Date(transaction.date).toLocaleDateString(),
+      transaction.description,
+      getFarmName(transaction.farmId),
+      transaction.category,
+      transaction.type,
+      `$${transaction.amount.toLocaleString()}`
+    ]);
+
+    doc.autoTable({
+      head: [tableColumns],
+      body: tableRows,
+      startY: 70,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [41, 128, 185] }
+    });
+
+    doc.save(`financial-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    return true;
   }
 };
 
