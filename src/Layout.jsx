@@ -1,9 +1,26 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ApperIcon from '@/components/ApperIcon';
+import Button from '@/components/atoms/Button';
 import { routeArray } from '@/config/routes';
+import { AuthContext } from './App';
 
+const LogoutButton = () => {
+  const { logout } = useContext(AuthContext);
+  
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      icon="LogOut"
+      onClick={logout}
+      className="text-gray-600 hover:text-error"
+    >
+      Logout
+    </Button>
+  );
+};
 const Layout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -39,12 +56,13 @@ const Layout = () => {
             <h1 className="text-xl font-display font-bold text-primary">FarmFlow</h1>
           </div>
 
-          {/* Header Actions */}
+{/* Header Actions */}
           <div className="flex items-center space-x-3">
             <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
               <ApperIcon name="MapPin" size={16} />
               <span>Main Farm</span>
             </div>
+            <LogoutButton />
           </div>
         </div>
       </header>
