@@ -10,12 +10,13 @@ const farmService = {
       });
 
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "location" } },
           { field: { Name: "size" } },
           { field: { Name: "size_unit" } },
-          { field: { Name: "created_at" } }
+          { field: { Name: "created_at" } },
+          { field: { Name: "directions" } }
         ],
         orderBy: [{ fieldName: "created_at", sorttype: "DESC" }]
       };
@@ -33,13 +34,14 @@ const farmService = {
       }
 
       // Transform data to match UI expectations
-      return response.data.map(farm => ({
+return response.data.map(farm => ({
         Id: farm.Id,
         name: farm.Name,
         location: farm.location,
         size: farm.size,
         sizeUnit: farm.size_unit,
-        createdAt: farm.created_at
+        createdAt: farm.created_at,
+        directions: farm.directions
       }));
     } catch (error) {
       console.error('Error fetching farms:', error);
@@ -56,12 +58,13 @@ const farmService = {
       });
 
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "location" } },
           { field: { Name: "size" } },
           { field: { Name: "size_unit" } },
-          { field: { Name: "created_at" } }
+          { field: { Name: "created_at" } },
+          { field: { Name: "directions" } }
         ]
       };
 
@@ -73,13 +76,14 @@ const farmService = {
 
       // Transform data to match UI expectations
       const farm = response.data;
-      return {
+return {
         Id: farm.Id,
         name: farm.Name,
         location: farm.location,
         size: farm.size,
         sizeUnit: farm.size_unit,
-        createdAt: farm.created_at
+        createdAt: farm.created_at,
+        directions: farm.directions
       };
     } catch (error) {
       console.error(`Error fetching farm with ID ${id}:`, error);
@@ -96,12 +100,13 @@ const farmService = {
       });
 
       const params = {
-        records: [{
+records: [{
           Name: farmData.name,
           location: farmData.location,
           size: farmData.size,
           size_unit: farmData.sizeUnit,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          directions: farmData.directions
         }]
       };
 
@@ -130,13 +135,14 @@ const farmService = {
 
         if (successfulRecords.length > 0) {
           const farm = successfulRecords[0].data;
-          return {
+return {
             Id: farm.Id,
             name: farm.Name,
             location: farm.location,
             size: farm.size,
             sizeUnit: farm.size_unit,
-            createdAt: farm.created_at
+            createdAt: farm.created_at,
+            directions: farm.directions
           };
         }
       }
@@ -157,12 +163,13 @@ const farmService = {
       });
 
       const params = {
-        records: [{
+records: [{
           Id: parseInt(id, 10),
           Name: farmData.name,
           location: farmData.location,
           size: farmData.size,
-          size_unit: farmData.sizeUnit
+          size_unit: farmData.sizeUnit,
+          directions: farmData.directions
         }]
       };
 
@@ -191,13 +198,14 @@ const farmService = {
 
         if (successfulUpdates.length > 0) {
           const farm = successfulUpdates[0].data;
-          return {
+return {
             Id: farm.Id,
             name: farm.Name,
             location: farm.location,
             size: farm.size,
             sizeUnit: farm.size_unit,
-            createdAt: farm.created_at
+            createdAt: farm.created_at,
+            directions: farm.directions
           };
         }
       }

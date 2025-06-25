@@ -14,11 +14,12 @@ import cropService from '@/services/api/cropService';
 import taskService from '@/services/api/taskService';
 
 const FarmForm = ({ farm, onSubmit, onCancel, isOpen }) => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     name: '',
     location: '',
     size: '',
-    sizeUnit: 'acres'
+    sizeUnit: 'acres',
+    directions: ''
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -31,18 +32,20 @@ const FarmForm = ({ farm, onSubmit, onCancel, isOpen }) => {
 
   useEffect(() => {
     if (farm) {
-      setFormData({
+setFormData({
         name: farm.name || '',
         location: farm.location || '',
         size: farm.size?.toString() || '',
-        sizeUnit: farm.sizeUnit || 'acres'
+        sizeUnit: farm.sizeUnit || 'acres',
+        directions: farm.directions || ''
       });
     } else {
-      setFormData({
+setFormData({
         name: '',
         location: '',
         size: '',
-        sizeUnit: 'acres'
+        sizeUnit: 'acres',
+        directions: ''
       });
     }
     setErrors({});
@@ -153,7 +156,21 @@ const FarmForm = ({ farm, onSubmit, onCancel, isOpen }) => {
               placeholder="e.g., Valley County, Montana"
               error={errors.location}
               required
-            />
+/>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">
+                Directions
+              </label>
+              <textarea
+                name="directions"
+                value={formData.directions}
+                onChange={handleChange}
+                placeholder="Enter driving directions or access instructions..."
+                rows={3}
+                className="w-full px-3 py-2 border border-surface-300 rounded-lg transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 bg-white resize-none"
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <Input
