@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import farmService from "@/services/api/farmService";
 import transactionService from "@/services/api/transactionService";
 import ApperIcon from "@/components/ApperIcon";
@@ -474,9 +476,107 @@ const handleExport = async (exportFormat) => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+URL.revokeObjectURL(url);
       } else if (exportFormat === 'pdf') {
-        toast.info('PDF export functionality will be implemented soon');
+        // Generate PDF report
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.width;
+        const margin = 20;
+        
+        // Header
+        doc.setFontSize(20);
+        doc.setTextColor(34, 197, 94); // Primary green color
+        doc.text('FarmFlow - Financial Report', margin, 30);
+        
+        // Date and summary info
+        doc.setFontSize(12);
+        doc.setTextColor(107, 114, 128); // Gray color
+        const reportDate = format(new Date(), 'MMMM dd, yyyy');
+        doc.text(`Generated on: ${reportDate}`, margin, 45);
+        doc.text(`Total Transactions: ${filteredTransactions.length}`, margin, 55);
+        
+        // Summary statistics if available
+        if (summary) {
+          doc.setFontSize(14);
+          doc.setTextColor(17, 24, 39); // Dark gray
+          doc.text('Financial Summary', margin, 75);
+          
+          doc.setFontSize(11);
+          doc.setTextColor(34, 197, 94); // Success green
+          doc.text(`Total Income: $${summary.income.toLocaleString()}`, margin, 90);
+          
+          doc.setTextColor(239, 68, 68); // Error red  
+          doc.text(`Total Expenses: $${summary.expenses.toLocaleString()}`, margin + 100, 90);
+          
+          doc.setTextColor(summary.profit >= 0 ? 34 : 239, summary.profit >= 0 ? 197 : 68, summary.profit >= 0 ? 94 : 68);
+          doc.text(`Net Profit: $${summary.profit.toLocaleString()}`, margin + 200, 90);
+        }
+        
+        // Prepare table data
+        const tableColumns = ['Date', 'Description', 'Farm', 'Category', 'Type', 'Amount'];
+        const tableRows = dataToExport.map(transaction => [
+          transaction.Date,
+          transaction.Description.length > 30 ? transaction.Description.substring(0, 30) + '...' : transaction.Description,
+          transaction.Farm,
+          transaction.Category,
+          transaction.Type,
+          `$${transaction.Amount.toLocaleString()}`
+        ]);
+        
+        // Generate table
+        doc.autoTable({
+          head: [tableColumns],
+          body: tableRows,
+          startY: summary ? 105 : 70,
+          margin: { left: margin, right: margin },
+          styles: {
+            fontSize: 9,
+            cellPadding: 3,
+          },
+          headStyles: {
+            fillColor: [34, 197, 94], // Primary green
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+          },
+          alternateRowStyles: {
+            fillColor: [249, 250, 251], // Light gray
+          },
+          columnStyles: {
+            0: { cellWidth: 25 }, // Date
+            1: { cellWidth: 45 }, // Description
+            2: { cellWidth: 30 }, // Farm
+            3: { cellWidth: 25 }, // Category
+            4: { cellWidth: 20 }, // Type
+            5: { cellWidth: 25, halign: 'right' }, // Amount
+          },
+        });
+        
+        // Add totals section at bottom
+        const finalY = doc.lastAutoTable.finalY + 15;
+        if (summary && finalY < doc.internal.pageSize.height - 40) {
+          doc.setDrawColor(229, 231, 235); // Border gray
+          doc.line(margin, finalY, pageWidth - margin, finalY);
+          
+          doc.setFontSize(11);
+          doc.setTextColor(17, 24, 39);
+          doc.setFont(undefined, 'bold');
+          doc.text('Summary Totals:', margin, finalY + 15);
+          
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(34, 197, 94);
+          doc.text(`Income: $${summary.income.toLocaleString()}`, margin, finalY + 28);
+          
+          doc.setTextColor(239, 68, 68);
+          doc.text(`Expenses: $${summary.expenses.toLocaleString()}`, margin + 80, finalY + 28);
+          
+          doc.setTextColor(summary.profit >= 0 ? 34 : 239, summary.profit >= 0 ? 197 : 68, summary.profit >= 0 ? 94 : 68);
+          doc.setFont(undefined, 'bold');
+          doc.text(`Net Result: $${summary.profit.toLocaleString()}`, margin + 160, finalY + 28);
+        }
+        
+        // Save PDF
+        const fileName = `farmflow_financial_report_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
       }
       
       toast.success(`Data exported successfully as ${exportFormat.toUpperCase()}`);
