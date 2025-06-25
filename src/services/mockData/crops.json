@@ -1,0 +1,52 @@
+[
+  {
+    "Id": 1,
+    "farmId": 1,
+    "cropType": "Corn",
+    "field": "North Field",
+    "plantingDate": "2024-04-15T00:00:00Z",
+    "expectedHarvest": "2024-09-15T00:00:00Z",
+    "quantity": 25,
+    "status": "growing"
+  },
+  {
+    "Id": 2,
+    "farmId": 1,
+    "cropType": "Soybeans",
+    "field": "South Field",
+    "plantingDate": "2024-05-01T00:00:00Z",
+    "expectedHarvest": "2024-10-01T00:00:00Z",
+    "quantity": 30,
+    "status": "growing"
+  },
+  {
+    "Id": 3,
+    "farmId": 2,
+    "cropType": "Wheat",
+    "field": "Main Field",
+    "plantingDate": "2024-03-20T00:00:00Z",
+    "expectedHarvest": "2024-08-20T00:00:00Z",
+    "quantity": 45,
+    "status": "growing"
+  },
+  {
+    "Id": 4,
+    "farmId": 3,
+    "cropType": "Tomatoes",
+    "field": "Greenhouse A",
+    "plantingDate": "2024-04-01T00:00:00Z",
+    "expectedHarvest": "2024-07-15T00:00:00Z",
+    "quantity": 15,
+    "status": "harvested"
+  },
+  {
+    "Id": 5,
+    "farmId": 4,
+    "cropType": "Lettuce",
+    "field": "Field 1",
+    "plantingDate": "2024-05-10T00:00:00Z",
+    "expectedHarvest": "2024-07-10T00:00:00Z",
+    "quantity": 8,
+    "status": "planted"
+  }
+]

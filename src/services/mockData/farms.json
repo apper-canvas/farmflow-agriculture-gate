@@ -1,0 +1,34 @@
+[
+  {
+    "Id": 1,
+    "name": "Greenfield Farm",
+    "location": "Valley County, Montana",
+    "size": 150,
+    "sizeUnit": "acres",
+    "createdAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "Id": 2,
+    "name": "Sunset Ranch",
+    "location": "Riverside County, California",
+    "size": 87,
+    "sizeUnit": "acres",
+    "createdAt": "2024-02-20T14:15:00Z"
+  },
+  {
+    "Id": 3,
+    "name": "Prairie View Farm",
+    "location": "Lancaster County, Nebraska",
+    "size": 220,
+    "sizeUnit": "acres",
+    "createdAt": "2024-03-05T09:45:00Z"
+  },
+  {
+    "Id": 4,
+    "name": "Hillside Organic",
+    "location": "Washington County, Oregon",
+    "size": 65,
+    "sizeUnit": "acres",
+    "createdAt": "2024-03-18T16:20:00Z"
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "Id": 1,
+    "farmId": 1,
+    "cropId": 1,
+    "title": "Water corn field",
+    "type": "irrigation",
+    "dueDate": "2024-12-20T08:00:00Z",
+    "completed": false,
+    "priority": "high"
+  },
+  {
+    "Id": 2,
+    "farmId": 1,
+    "cropId": 2,
+    "title": "Apply fertilizer to soybeans",
+    "type": "fertilizing",
+    "dueDate": "2024-12-22T10:00:00Z",
+    "completed": false,
+    "priority": "medium"
+  },
+  {
+    "Id": 3,
+    "farmId": 2,
+    "cropId": 3,
+    "title": "Harvest wheat",
+    "type": "harvesting",
+    "dueDate": "2024-12-18T06:00:00Z",
+    "completed": true,
+    "priority": "high"
+  },
+  {
+    "Id": 4,
+    "farmId": 1,
+    "cropId": 1,
+    "title": "Check for pests",
+    "type": "monitoring",
+    "dueDate": "2024-12-25T14:00:00Z",
+    "completed": false,
+    "priority": "low"
+  },
+  {
+    "Id": 5,
+    "farmId": 4,
+    "cropId": 5,
+    "title": "Thin lettuce seedlings",
+    "type": "cultivation",
+    "dueDate": "2024-12-21T09:00:00Z",
+    "completed": false,
+    "priority": "medium"
+  },
+  {
+    "Id": 6,
+    "farmId": 3,
+    "cropId": 4,
+    "title": "Prune tomato plants",
+    "type": "cultivation",
+    "dueDate": "2024-12-19T11:00:00Z",
+    "completed": false,
+    "priority": "low"
+  }
+]

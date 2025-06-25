@@ -1,0 +1,65 @@
+[
+  {
+    "Id": 1,
+    "farmId": 1,
+    "type": "expense",
+    "category": "Seeds",
+    "amount": 450.00,
+    "description": "Corn seed - hybrid variety",
+    "date": "2024-04-10T00:00:00Z"
+  },
+  {
+    "Id": 2,
+    "farmId": 1,
+    "type": "expense",
+    "category": "Fertilizer",
+    "amount": 280.50,
+    "description": "NPK fertilizer for soybeans",
+    "date": "2024-05-15T00:00:00Z"
+  },
+  {
+    "Id": 3,
+    "farmId": 2,
+    "type": "income",
+    "category": "Crop Sales",
+    "amount": 3200.00,
+    "description": "Wheat harvest - local grain elevator",
+    "date": "2024-08-25T00:00:00Z"
+  },
+  {
+    "Id": 4,
+    "farmId": 1,
+    "type": "expense",
+    "category": "Equipment",
+    "amount": 125.00,
+    "description": "Irrigation system maintenance",
+    "date": "2024-06-20T00:00:00Z"
+  },
+  {
+    "Id": 5,
+    "farmId": 3,
+    "type": "income",
+    "category": "Crop Sales",
+    "amount": 1850.00,
+    "description": "Tomato sales - farmers market",
+    "date": "2024-07-30T00:00:00Z"
+  },
+  {
+    "Id": 6,
+    "farmId": 4,
+    "type": "expense",
+    "category": "Seeds",
+    "amount": 85.00,
+    "description": "Organic lettuce seeds",
+    "date": "2024-05-05T00:00:00Z"
+  },
+  {
+    "Id": 7,
+    "farmId": 2,
+    "type": "expense",
+    "category": "Labor",
+    "amount": 600.00,
+    "description": "Seasonal workers - harvest",
+    "date": "2024-08-15T00:00:00Z"
+  }
+]
