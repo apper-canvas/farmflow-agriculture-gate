@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { isToday, isTomorrow, isPast } from 'date-fns';
@@ -22,6 +23,7 @@ import taskService from '@/services/api/taskService';
 import transactionService from '@/services/api/transactionService';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState({
     farms: [],
     crops: [],
@@ -30,7 +32,6 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   useEffect(() => {
     const loadDashboardData = async () => {
       setLoading(true);
@@ -72,8 +73,20 @@ const Dashboard = () => {
     } catch (error) {
       toast.error('Failed to update task');
     }
+};
+
+  const handleCalendarClick = () => {
+    navigate('/tasks');
+    toast.info('Navigating to task calendar view');
   };
 
+  const handleQuickAdd = () => {
+    // Future enhancement: Could show modal with options for Task, Crop, Farm, Transaction
+    toast.info('Quick Add feature - select what you\'d like to add', {
+      position: 'top-center',
+      autoClose: 3000
+    });
+  };
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -135,11 +148,11 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold text-gray-900">Farm Dashboard</h1>
           <p className="text-gray-600">Welcome back! Here's what's happening on your farms.</p>
         </div>
-        <div className="flex space-x-3">
-          <Button variant="outline" icon="Calendar">
+<div className="flex space-x-3">
+          <Button variant="outline" icon="Calendar" onClick={handleCalendarClick}>
             View Calendar
           </Button>
-          <Button variant="primary" icon="Plus">
+          <Button variant="primary" icon="Plus" onClick={handleQuickAdd}>
             Quick Add
           </Button>
         </div>
