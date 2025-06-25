@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { format, isOverdue, isTomorrow, isToday } from 'date-fns';
-import { toast } from 'react-toastify';
-import ApperIcon from '@/components/ApperIcon';
-import Button from '@/components/atoms/Button';
-import Badge from '@/components/atoms/Badge';
-import Card from '@/components/atoms/Card';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { format, isPast, isToday, isTomorrow } from "date-fns";
+import { toast } from "react-toastify";
+import ApperIcon from "@/components/ApperIcon";
+import Card from "@/components/atoms/Card";
+import Badge from "@/components/atoms/Badge";
+import Button from "@/components/atoms/Button";
 
 const TaskList = ({ tasks, farms, crops, onToggleComplete, onEdit, onDelete }) => {
   const [filter, setFilter] = useState('all');
@@ -41,9 +41,13 @@ const TaskList = ({ tasks, farms, crops, onToggleComplete, onEdit, onDelete }) =
     }
   };
 
+const isOverdue = (date) => {
+    return isPast(date) && !isToday(date);
+  };
+
   const getDueDateStatus = (dueDate) => {
     const due = new Date(dueDate);
-    if (isOverdue(due)) return { text: 'Overdue', color: 'error' };
+    if (isPast(due)) return { text: 'Overdue', color: 'error' };
     if (isToday(due)) return { text: 'Due Today', color: 'warning' };
     if (isTomorrow(due)) return { text: 'Due Tomorrow', color: 'info' };
     return { text: format(due, 'MMM dd'), color: 'default' };
