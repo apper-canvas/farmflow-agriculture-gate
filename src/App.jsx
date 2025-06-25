@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-import { Navigate, Route, Router, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, BrowserRouter, Routes, useNavigate } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { store } from "./store/store";
@@ -160,9 +160,9 @@ function AppContent() {
 function App() {
   return (
     <Provider store={store}>
-      <Router>
+      <BrowserRouter>
         <AppContent />
-      </Router>
+      </BrowserRouter>
     </Provider>
   );
 }
