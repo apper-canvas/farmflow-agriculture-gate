@@ -13,6 +13,10 @@ import PromptPassword from "./components/pages/PromptPassword";
 import Layout from "@/Layout";
 import "@/index.css";
 import { routeArray } from "@/config/routes";
+import Inventory from "./components/pages/Inventory";
+import StorageLocations from "./components/pages/StorageLocations";
+import StockMovements from "./components/pages/StockMovements";
+import BatchTracking from "./components/pages/BatchTracking";
 
 // Create auth context
 export const AuthContext = createContext(null);
