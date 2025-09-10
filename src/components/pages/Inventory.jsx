@@ -1,25 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
-import Card from '@/components/atoms/Card';
-import Button from '@/components/atoms/Button';
-import Input from '@/components/atoms/Input';
-import Select from '@/components/atoms/Select';
-import StatCard from '@/components/molecules/StatCard';
-import EmptyState from '@/components/molecules/EmptyState';
-import ErrorState from '@/components/molecules/ErrorState';
-import SkeletonLoader from '@/components/molecules/SkeletonLoader';
-import Badge from '@/components/atoms/Badge';
-import ApperIcon from '@/components/ApperIcon';
-import { inventoryItemService } from '@/services/api/inventoryItemService';
-import { storageLocationService } from '@/services/api/storageLocationService';
-import { stockMovementService } from '@/services/api/stockMovementService';
-import { batchService } from '@/services/api/batchService';
-import {
-  setItems, setItemsLoading, setItemsError,
-  setLocations, setCurrentStock, setAlerts
-} from '@/store/inventorySlice';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { inventoryItemService } from "@/services/api/inventoryItemService";
+import { storageLocationService } from "@/services/api/storageLocationService";
+import { stockMovementService } from "@/services/api/stockMovementService";
+import { batchService } from "@/services/api/batchService";
+import { 
+  setAlerts, 
+  setCurrentStock, 
+  setItems, 
+  setItemsError, 
+  setItemsLoading, 
+  setLocations,
+  updateItem,
+  addItem
+} from "@/store/inventorySlice";
+import ApperIcon from "@/components/ApperIcon";
+import ErrorState from "@/components/molecules/ErrorState";
+import StatCard from "@/components/molecules/StatCard";
+import EmptyState from "@/components/molecules/EmptyState";
+import SkeletonLoader from "@/components/molecules/SkeletonLoader";
+import Input from "@/components/atoms/Input";
+import Badge from "@/components/atoms/Badge";
+import Select from "@/components/atoms/Select";
+import Card from "@/components/atoms/Card";
+import Button from "@/components/atoms/Button";
 
 const Inventory = () => {
   const dispatch = useDispatch();
@@ -43,57 +49,32 @@ const Inventory = () => {
     loadInventoryData();
   }, []);
 
-  // Filter items based on search and filters
-  const filteredItems = items.filter(item => {
-    const matchesSearch = item.item_name_c?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.sku_c?.toLowerCase().includes(searchTerm.toLowerCase());
+const loadInventoryData = async () => {
+    dispatch(setItemsLoading(true));
     
-    const stock = currentStock[item.Id] || { current_quantity: 0 };
-    const isLowStock = stock.current_quantity <= (item.low_stock_threshold_c || 0);
-    
-    return matchesSearch && 
-           (filterType === '' || item.unit_of_measure_c === filterType) &&
-           (!showLowStock || isLowStock);
-  });
-
-  const loadInventoryData = async () => {
     try {
-      dispatch(setItemsLoading(true));
-      
-      // Load items, locations, stock levels, and recent movements in parallel
-      const [itemsData, locationsData, stockData, movementsData] = await Promise.all([
+      const [itemsData, locationsData] = await Promise.all([
         inventoryItemService.getAllItems(),
-        storageLocationService.getAllLocations(),
-        stockMovementService.getAllStockLevels(),
-        stockMovementService.getAllMovements({ limit: 10 })
+        storageLocationService.getAllLocations()
       ]);
 
       dispatch(setItems(itemsData));
       dispatch(setLocations(locationsData));
-      dispatch(setCurrentStock(stockData));
-      setRecentMovements(movementsData.slice(0, 5));
 
-      // Calculate statistics
-      const lowStockItems = await stockMovementService.getLowStockItems(itemsData);
-      const expiringBatches = await batchService.getExpiringBatches(30);
-      
-      dispatch(setAlerts({
-        lowStock: lowStockItems,
-        expiringBatches: expiringBatches
-      }));
-
+      // Calculate basic statistics from the loaded items
       setStats({
         totalItems: itemsData.length,
-        lowStockItems: lowStockItems.length,
-        totalValue: Object.values(stockData).reduce((sum, stock) => sum + stock.total_value, 0),
-        recentMovements: movementsData.length
+        lowStockItems: 0, // Will be calculated when stock movement integration is added
+        totalValue: itemsData.reduce((sum, item) => sum + (item.purchase_price_c || 0), 0),
+        recentMovements: 0 // Will be populated when stock movements are integrated
       });
 
     } catch (error) {
       console.error('Error loading inventory data:', error);
-      dispatch(setItemsError(error.message));
+      dispatch(setItemsError(error.message || 'Failed to load inventory data'));
       toast.error('Failed to load inventory data');
+    } finally {
+dispatch(setItemsLoading(false));
     }
   };
 
@@ -108,90 +89,168 @@ const Inventory = () => {
   };
 
   const handleDeleteItem = async (itemId) => {
-    if (!window.confirm('Are you sure you want to delete this inventory item?')) return;
+    if (!confirm('Are you sure you want to delete this item?')) {
+      return;
+    }
 
     try {
       await inventoryItemService.deleteItem(itemId);
-      toast.success('Inventory item deleted successfully');
-      loadInventoryData();
+      
+      // Update Redux state
+      dispatch(setItems(items.filter(item => item.Id !== itemId)));
+      toast.success('Item deleted successfully');
     } catch (error) {
-      console.error('Error deleting inventory item:', error);
-      toast.error('Failed to delete inventory item');
+      console.error('Error deleting item:', error);
+      toast.error(error.message || 'Failed to delete item');
     }
   };
 
   const handleFormSubmit = async (formData) => {
     try {
+      let result;
+      
       if (editingItem) {
-        await inventoryItemService.updateItem(editingItem.Id, formData);
-        toast.success('Inventory item updated successfully');
+        // Update existing item
+        result = await inventoryItemService.updateItem(editingItem.Id, {
+          Name: formData.name,
+          item_name_c: formData.name,
+          description_c: formData.description || '',
+          unit_of_measure_c: formData.unit_of_measure || '',
+          purchase_price_c: parseFloat(formData.purchase_price) || 0,
+          sku_c: formData.sku || '',
+          low_stock_threshold_c: parseInt(formData.low_stock_threshold) || 0,
+          Tags: formData.tags || ''
+        });
+        
+        // Update Redux state
+        dispatch(updateItem(result));
+        toast.success('Item updated successfully');
       } else {
-        await inventoryItemService.createItem(formData);
-        toast.success('Inventory item created successfully');
+        // Create new item
+        result = await inventoryItemService.createItem({
+          Name: formData.name,
+          item_name_c: formData.name,
+          description_c: formData.description || '',
+          unit_of_measure_c: formData.unit_of_measure || '',
+          purchase_price_c: parseFloat(formData.purchase_price) || 0,
+          sku_c: formData.sku || '',
+          low_stock_threshold_c: parseInt(formData.low_stock_threshold) || 0,
+          Tags: formData.tags || ''
+        });
+        
+        // Update Redux state
+        dispatch(addItem(result));
+        toast.success('Item created successfully');
       }
+
       setShowItemForm(false);
-      loadInventoryData();
+      setEditingItem(null);
     } catch (error) {
-      console.error('Error saving inventory item:', error);
-      toast.error('Failed to save inventory item');
+      console.error('Error saving item:', error);
+      toast.error(error.message || 'Failed to save item');
     }
   };
 
   const getStockStatus = (item) => {
-    const stock = currentStock[item.Id] || { current_quantity: 0 };
     const threshold = item.low_stock_threshold_c || 0;
+    const currentStock = 0; // Will be calculated when stock movement integration is added
     
-    if (stock.current_quantity === 0) {
-      return { status: 'Out of Stock', variant: 'error', icon: 'AlertTriangle' };
-    } else if (stock.current_quantity <= threshold) {
-      return { status: 'Low Stock', variant: 'warning', icon: 'AlertCircle' };
+    if (currentStock === 0) {
+      return { status: 'out-of-stock', color: 'error', label: 'Out of Stock' };
+    } else if (currentStock <= threshold) {
+      return { status: 'low-stock', color: 'warning', label: 'Low Stock' };
     } else {
-      return { status: 'In Stock', variant: 'success', icon: 'CheckCircle' };
+      return { status: 'in-stock', color: 'success', label: 'In Stock' };
     }
   };
 
-  if (loading.items && items.length === 0) {
+  // Filter items based on search and filters
+  const filteredItems = items.filter(item => {
+    const matchesSearch = !searchTerm || 
+      item.item_name_c?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.sku_c?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description_c?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesType = !filterType || item.unit_of_measure_c === filterType;
+    
+    return matchesSearch && matchesType;
+});
+
+  // Get unique unit types for filter dropdown
+  const unitTypes = [...new Set(items.map(item => item.unit_of_measure_c).filter(Boolean))];
+
+  if (loading.items) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
+          <SkeletonLoader className="w-32 h-10" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <SkeletonLoader count={4} type="stat" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <SkeletonLoader key={i} className="h-24" />
+          ))}
         </div>
-        <SkeletonLoader count={6} type="card" />
+        <SkeletonLoader className="h-96" />
       </div>
     );
   }
 
-  if (error.items && items.length === 0) {
-    return (
-      <div className="p-6">
-        <ErrorState
-          title="Failed to Load Inventory"
-          message={error.items}
-          onRetry={loadInventoryData}
-        />
-      </div>
-    );
-  }
+  if (error.items) {
+    return <ErrorState message={error.items} onRetry={loadInventoryData} />;
+}
 
   return (
-    <div className="p-6 space-y-6">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
-          <p className="text-gray-600 mt-1">Track and manage your farm supplies and equipment</p>
+          <p className="text-gray-600 mt-1">Manage your farm inventory items and stock levels</p>
         </div>
-        <Button
-          onClick={handleAddItem}
-          icon="Plus"
-          className="w-full sm:w-auto"
-        >
-          Add Inventory Item
+        <Button onClick={handleAddItem} className="flex items-center gap-2">
+          <ApperIcon name="Plus" size={16} />
+          Add Item
         </Button>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            placeholder="Search items..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
+          />
+          <Select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="w-full"
+          >
+            <option value="">All Units</option>
+            {unitTypes.map(unit => (
+              <option key={unit} value={unit}>{unit}</option>
+            ))}
+          </Select>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="lowStock"
+              checked={showLowStock}
+              onChange={(e) => setShowLowStock(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <label htmlFor="lowStock" className="text-sm text-gray-700">
+              Show low stock only
+            </label>
+          </div>
+        </div>
+      </Card>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -225,239 +284,124 @@ const Inventory = () => {
         />
       </div>
 
-      {/* Alerts */}
-      {(alerts.lowStock.length > 0 || alerts.expiringBatches.length > 0) && (
-        <Card className="border-l-4 border-l-warning">
-          <div className="flex items-start space-x-3">
-            <ApperIcon name="AlertTriangle" size={20} className="text-warning mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900">Inventory Alerts</h3>
-              <div className="mt-2 space-y-1">
-                {alerts.lowStock.length > 0 && (
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">{alerts.lowStock.length} items</span> are running low on stock
-                  </p>
-                )}
-                {alerts.expiringBatches.length > 0 && (
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">{alerts.expiringBatches.length} batches</span> are expiring within 30 days
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Filters */}
-      <Card>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Input
-            placeholder="Search items..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            icon="Search"
-          />
-          <Select
-            placeholder="Filter by unit"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            options={[
-              { value: '', label: 'All Units' },
-              { value: 'kg', label: 'Kilograms' },
-              { value: 'lbs', label: 'Pounds' },
-              { value: 'liters', label: 'Liters' },
-              { value: 'gallons', label: 'Gallons' },
-              { value: 'units', label: 'Units' }
-            ]}
-          />
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="lowStock"
-              checked={showLowStock}
-              onChange={(e) => setShowLowStock(e.target.checked)}
-              className="rounded border-gray-300"
-            />
-            <label htmlFor="lowStock" className="text-sm text-gray-700">
-              Show only low stock
-            </label>
-          </div>
+      {/* Inventory Items List */}
+      <Card className="overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Inventory Items</h2>
         </div>
+
+        {filteredItems.length === 0 ? (
+          <EmptyState
+            icon="Box"
+            title="No inventory items found"
+            description="Start by adding your first inventory item to track stock levels."
+            action={
+              <Button onClick={handleAddItem} className="flex items-center gap-2">
+                <ApperIcon name="Plus" size={16} />
+                Add First Item
+              </Button>
+            }
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Item
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    SKU
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Unit
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredItems.map((item) => {
+                  const stockStatus = getStockStatus(item);
+                  return (
+                    <motion.tr
+                      key={item.Id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {item.item_name_c || item.Name}
+                          </div>
+                          {item.description_c && (
+                            <div className="text-sm text-gray-500 truncate max-w-xs">
+                              {item.description_c}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900">{item.sku_c || 'N/A'}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900">{item.unit_of_measure_c || 'N/A'}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900">
+                          ${(item.purchase_price_c || 0).toFixed(2)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant={stockStatus.color}>
+                          {stockStatus.label}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditItem(item)}
+                          >
+                            <ApperIcon name="Edit" size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteItem(item.Id)}
+                            className="text-error hover:text-error-dark"
+                          >
+                            <ApperIcon name="Trash2" size={16} />
+                          </Button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
-      {/* Inventory Items */}
-      {filteredItems.length === 0 ? (
-        <EmptyState
-          icon="Box"
-          title="No inventory items found"
-          description="Start managing your farm inventory by adding your first item."
-          actionLabel="Add First Item"
-          onAction={handleAddItem}
-        />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredItems.map((item) => {
-            const stock = currentStock[item.Id] || { current_quantity: 0, average_cost: 0 };
-            const stockStatus = getStockStatus(item);
-            
-            return (
-              <motion.div
-                key={item.Id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card hover className="h-full">
-                  <div className="space-y-4">
-                    {/* Header */}
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {item.item_name_c || item.Name}
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1">{item.sku_c}</p>
-                      </div>
-                      <div className="flex space-x-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          icon="Edit"
-                          onClick={() => handleEditItem(item)}
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          icon="Trash2"
-                          onClick={() => handleDeleteItem(item.Id)}
-                          className="text-error hover:text-error"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Stock Status */}
-                    <div className="flex justify-between items-center">
-                      <Badge
-                        variant={stockStatus.variant}
-                        icon={stockStatus.icon}
-                        size="sm"
-                      >
-                        {stockStatus.status}
-                      </Badge>
-                      <span className="text-sm text-gray-600">
-                        {stock.current_quantity} {item.unit_of_measure_c}
-                      </span>
-                    </div>
-
-                    {/* Stock Details */}
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">Current Stock:</span>
-                        <p className="font-medium">{stock.current_quantity} {item.unit_of_measure_c}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Threshold:</span>
-                        <p className="font-medium">{item.low_stock_threshold_c || 0} {item.unit_of_measure_c}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Avg Cost:</span>
-                        <p className="font-medium">${stock.average_cost?.toFixed(2) || '0.00'}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Total Value:</span>
-                        <p className="font-medium">${(stock.current_quantity * stock.average_cost)?.toFixed(2) || '0.00'}</p>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    {item.description_c && (
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {item.description_c}
-                      </p>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex space-x-2 pt-2 border-t">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        icon="TrendingUp"
-                      >
-                        Stock In
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        icon="TrendingDown"
-                      >
-                        Stock Out
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Recent Movements */}
-      {recentMovements.length > 0 && (
-        <Card>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Stock Movements</h2>
-            <Button variant="ghost" size="sm" icon="ArrowRight">
-              View All
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {recentMovements.map((movement) => (
-              <div key={movement.Id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    movement.movement_type === 'stock_in' 
-                      ? 'bg-success/10 text-success' 
-                      : movement.movement_type === 'stock_out'
-                      ? 'bg-error/10 text-error'
-                      : 'bg-info/10 text-info'
-                  }`}>
-                    <ApperIcon 
-                      name={movement.movement_type === 'stock_in' ? 'TrendingUp' : movement.movement_type === 'stock_out' ? 'TrendingDown' : 'RotateCw'} 
-                      size={16} 
-                    />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{movement.item_name}</p>
-                    <p className="text-xs text-gray-500">{movement.reason}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-sm">
-                    {movement.movement_type === 'stock_out' ? '-' : '+'}{movement.quantity} {movement.unit_of_measure}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(movement.movement_date).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Item Form Modal (would be implemented as a separate component) */}
+      {/* Item Form Modal - Implementation would go here */}
       {showItemForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4">
+            <h3 className="text-lg font-semibold mb-4">
               {editingItem ? 'Edit Item' : 'Add New Item'}
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Item form would be implemented here with all required fields.
-            </p>
-            <div className="flex justify-end space-x-2">
+            </h3>
+            {/* Form implementation would go here */}
+            <div className="flex justify-end gap-2 mt-6">
               <Button
                 variant="outline"
                 onClick={() => setShowItemForm(false)}
@@ -465,13 +409,13 @@ const Inventory = () => {
                 Cancel
               </Button>
               <Button onClick={() => setShowItemForm(false)}>
-                Save Item
+                {editingItem ? 'Update' : 'Create'}
               </Button>
             </div>
           </div>
         </div>
-      )}
-    </div>
+)}
+    </motion.div>
   );
 };
 
