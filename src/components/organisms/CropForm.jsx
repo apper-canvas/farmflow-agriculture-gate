@@ -17,7 +17,10 @@ const [formData, setFormData] = useState({
     plantingDate: '',
     expectedHarvest: '',
     quantity: '',
-    status: 'planted'
+    status: 'planted',
+    activityType: '',
+    activityDate: '',
+    activityNotes: ''
   });
   const [farms, setFarms] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -57,7 +60,7 @@ const [formData, setFormData] = useState({
 
   useEffect(() => {
 if (crop) {
-      setFormData({
+setFormData({
         farmId: crop.farmId?.toString() || '',
         name: crop.name || '',
         cropType: crop.cropType || '',
@@ -65,10 +68,13 @@ if (crop) {
         plantingDate: crop.plantingDate ? format(new Date(crop.plantingDate), 'yyyy-MM-dd') : '',
         expectedHarvest: crop.expectedHarvest ? format(new Date(crop.expectedHarvest), 'yyyy-MM-dd') : '',
         quantity: crop.quantity?.toString() || '',
-        status: crop.status || 'planted'
+        status: crop.status || 'planted',
+        activityType: crop.activityType || '',
+        activityDate: crop.activityDate ? format(new Date(crop.activityDate), 'yyyy-MM-dd') : '',
+        activityNotes: crop.activityNotes || ''
       });
     } else {
-      setFormData({
+setFormData({
         farmId: '',
         name: '',
         cropType: '',
@@ -76,7 +82,10 @@ if (crop) {
         plantingDate: '',
         expectedHarvest: '',
         quantity: '',
-        status: 'planted'
+        status: 'planted',
+        activityType: '',
+        activityDate: '',
+        activityNotes: ''
       });
     }
     setErrors({});
@@ -123,11 +132,12 @@ if (!formData.farmId) newErrors.farmId = 'Farm is required';
     setLoading(true);
     try {
       const cropData = {
-        ...formData,
+...formData,
         farmId: parseInt(formData.farmId, 10),
         quantity: parseFloat(formData.quantity),
         plantingDate: new Date(formData.plantingDate).toISOString(),
-        expectedHarvest: new Date(formData.expectedHarvest).toISOString()
+        expectedHarvest: new Date(formData.expectedHarvest).toISOString(),
+        activityDate: formData.activityDate ? new Date(formData.activityDate).toISOString() : null
       };
 
       await onSubmit(cropData);
@@ -266,7 +276,60 @@ if (!formData.farmId) newErrors.farmId = 'Farm is required';
                 options={statusOptions}
               />
             </div>
-
+{/* Activity Tracking Section */}
+          <div className="space-y-4 pt-6 border-t border-surface-200">
+            <h3 className="text-lg font-semibold text-surface-800 flex items-center gap-2">
+              <ApperIcon name="Activity" size={20} />
+              Latest Farm Activity
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Select
+                label="Activity Type"
+                name="activityType"
+                value={formData.activityType}
+                onChange={handleChange}
+                error={errors.activityType}
+                options={[
+                  { value: '', label: 'Select activity type...' },
+                  { value: 'planting', label: 'Planting' },
+                  { value: 'irrigation', label: 'Irrigation' },
+                  { value: 'fertilizing', label: 'Fertilizing' },
+                  { value: 'harvesting', label: 'Harvesting' },
+                  { value: 'weeding', label: 'Weeding' },
+                  { value: 'pest_control', label: 'Pest Control' },
+                  { value: 'pruning', label: 'Pruning' },
+                  { value: 'maintenance', label: 'Maintenance' }
+                ]}
+              />
+              
+              <Input
+                type="date"
+                label="Activity Date"
+                name="activityDate"
+                value={formData.activityDate}
+                onChange={handleChange}
+                error={errors.activityDate}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-surface-700">
+                Activity Notes
+              </label>
+              <textarea
+                name="activityNotes"
+                value={formData.activityNotes}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2 border border-surface-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                placeholder="Add any additional notes about this activity..."
+              />
+              {errors.activityNotes && (
+                <p className="text-sm text-error">{errors.activityNotes}</p>
+              )}
+            </div>
+          </div>
             <div className="flex justify-end space-x-3 pt-6 border-t border-surface-200">
               <Button
                 type="button"

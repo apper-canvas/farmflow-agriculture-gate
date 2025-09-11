@@ -327,7 +327,7 @@ const Crops = () => {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {filteredCrops.map((crop) => {
-            const farm = farms.find(f => f.Id === crop.farmId);
+const farm = farms.find(f => f.Id === crop.farmId);
             return (
               <motion.div key={crop.Id} variants={itemVariants}>
                 <CropCard

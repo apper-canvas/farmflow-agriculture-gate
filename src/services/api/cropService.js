@@ -12,14 +12,17 @@ const cropService = {
 
       const params = {
         fields: [
-          { field: { Name: "Name" } },
+{ field: { Name: "Name" } },
           { field: { Name: "crop_type" } },
           { field: { Name: "field" } },
           { field: { Name: "planting_date" } },
           { field: { Name: "expected_harvest" } },
           { field: { Name: "quantity" } },
           { field: { Name: "status" } },
-          { field: { Name: "farm_id" } }
+          { field: { Name: "farm_id" } },
+          { field: { Name: "activity_type_c" } },
+          { field: { Name: "activity_date_c" } },
+          { field: { Name: "activity_notes_c" } }
         ],
         orderBy: [{ fieldName: "planting_date", sorttype: "DESC" }]
       };
@@ -46,7 +49,10 @@ return response.data.map(crop => ({
         plantingDate: crop.planting_date,
         expectedHarvest: crop.expected_harvest,
         quantity: crop.quantity,
-        status: crop.status
+        status: crop.status,
+        activityType: crop.activity_type_c,
+        activityDate: crop.activity_date_c,
+        activityNotes: crop.activity_notes_c
       }));
     } catch (error) {
       console.error('Error fetching crops:', error);
@@ -63,7 +69,7 @@ return response.data.map(crop => ({
       });
 
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "crop_type" } },
           { field: { Name: "field" } },
@@ -71,7 +77,10 @@ return response.data.map(crop => ({
           { field: { Name: "expected_harvest" } },
           { field: { Name: "quantity" } },
           { field: { Name: "status" } },
-          { field: { Name: "farm_id" } }
+          { field: { Name: "farm_id" } },
+          { field: { Name: "activity_type_c" } },
+          { field: { Name: "activity_date_c" } },
+          { field: { Name: "activity_notes_c" } }
         ]
       };
 
@@ -83,7 +92,7 @@ return response.data.map(crop => ({
 
       // Transform data to match UI expectations
 const crop = response.data;
-      return {
+return {
         Id: crop.Id,
         name: crop.Name,
         farmId: crop.farm_id,
@@ -92,7 +101,10 @@ const crop = response.data;
         plantingDate: crop.planting_date,
         expectedHarvest: crop.expected_harvest,
         quantity: crop.quantity,
-        status: crop.status
+        status: crop.status,
+        activityType: crop.activity_type_c,
+        activityDate: crop.activity_date_c,
+        activityNotes: crop.activity_notes_c
       };
     } catch (error) {
       console.error(`Error fetching crop with ID ${id}:`, error);
@@ -109,7 +121,7 @@ const crop = response.data;
       });
 
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "crop_type" } },
           { field: { Name: "field" } },
@@ -117,7 +129,10 @@ const crop = response.data;
           { field: { Name: "expected_harvest" } },
           { field: { Name: "quantity" } },
           { field: { Name: "status" } },
-          { field: { Name: "farm_id" } }
+          { field: { Name: "farm_id" } },
+          { field: { Name: "activity_type_c" } },
+          { field: { Name: "activity_date_c" } },
+          { field: { Name: "activity_notes_c" } }
         ],
         where: [
           {
@@ -149,7 +164,10 @@ return response.data.map(crop => ({
         plantingDate: crop.planting_date,
         expectedHarvest: crop.expected_harvest,
         quantity: crop.quantity,
-        status: crop.status
+        status: crop.status,
+        activityType: crop.activity_type_c,
+        activityDate: crop.activity_date_c,
+        activityNotes: crop.activity_notes_c
       }));
     } catch (error) {
       console.error('Error fetching crops by farm ID:', error);
@@ -174,7 +192,10 @@ records: [{
           expected_harvest: cropData.expectedHarvest,
           quantity: cropData.quantity,
           status: cropData.status,
-          farm_id: parseInt(cropData.farmId, 10)
+          farm_id: parseInt(cropData.farmId, 10),
+          activity_type_c: cropData.activityType || '',
+          activity_date_c: cropData.activityDate || null,
+          activity_notes_c: cropData.activityNotes || ''
         }]
       };
 
@@ -212,7 +233,10 @@ return {
             plantingDate: crop.planting_date,
             expectedHarvest: crop.expected_harvest,
             quantity: crop.quantity,
-            status: crop.status
+            status: crop.status,
+            activityType: crop.activity_type_c,
+            activityDate: crop.activity_date_c,
+            activityNotes: crop.activity_notes_c
           };
         }
       }
@@ -242,7 +266,10 @@ records: [{
           expected_harvest: cropData.expectedHarvest,
           quantity: cropData.quantity,
           status: cropData.status,
-          farm_id: parseInt(cropData.farmId, 10)
+          farm_id: parseInt(cropData.farmId, 10),
+          activity_type_c: cropData.activityType || '',
+          activity_date_c: cropData.activityDate || null,
+          activity_notes_c: cropData.activityNotes || ''
         }]
       };
 
@@ -280,7 +307,10 @@ if (successfulUpdates.length > 0) {
             plantingDate: crop.planting_date,
             expectedHarvest: crop.expected_harvest,
             quantity: crop.quantity,
-            status: crop.status
+            status: crop.status,
+            activityType: crop.activity_type_c,
+            activityDate: crop.activity_date_c,
+            activityNotes: crop.activity_notes_c
           };
         }
       }
