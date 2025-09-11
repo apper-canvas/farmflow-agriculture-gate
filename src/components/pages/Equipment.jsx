@@ -509,23 +509,25 @@ const handleFormSubmit = async (e) => {
                   value={formData.current_value}
                   onChange={(e) => handleFormChange('current_value', e.target.value)}
                 />
-                <Select
+<Select
                   label="Status"
-                  value={formData.status}
-                  onChange={(e) => handleFormChange('status', e.target.value)}
+                  value={formData.status_c}
+                  onChange={(e) => handleFormChange('status_c', e.target.value)}
                 >
                   <option value="Active">Active</option>
-                  <option value="Under Repair">Under Repair</option>
                   <option value="Inactive">Inactive</option>
+                  <option value="Under Maintenance">Under Maintenance</option>
+                  <option value="Retired">Retired</option>
                 </Select>
-                <Select
+<Select
                   label="Maintenance Status"
-                  value={formData.maintenance_status}
-                  onChange={(e) => handleFormChange('maintenance_status', e.target.value)}
+                  value={formData.maintenanceStatus_c}
+                  onChange={(e) => handleFormChange('maintenanceStatus_c', e.target.value)}
                 >
-                  <option value="Up to Date">Up to Date</option>
-                  <option value="Maintenance Due">Maintenance Due</option>
-                  <option value="In Service">In Service</option>
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Not Required">Not Required</option>
                 </Select>
                 <Input
                   label="Fuel Type"
