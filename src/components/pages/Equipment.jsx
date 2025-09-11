@@ -46,9 +46,10 @@ const [formData, setFormData] = useState({
   });
 
   // Load initial data
-  useEffect(() => {
+useEffect(() => {
     loadEquipmentData();
-    loadEquipmentTypes();
+    // Set equipment types immediately
+    setEquipmentTypes(['Tractor', 'Harvester', 'Planter', 'Cultivator', 'Irrigation', 'Storage', 'Transport', 'Tools']);
   }, []);
 
   const loadEquipmentData = async () => {
@@ -71,14 +72,7 @@ const [formData, setFormData] = useState({
     }
   };
 
-  const loadEquipmentTypes = async () => {
-    try {
-      const types = equipmentService.getEquipmentTypes();
-      setEquipmentTypes(types);
-    } catch (error) {
-      console.error('Error loading equipment types:', error);
-    }
-  };
+// Equipment types are set directly in useEffect - no async loading needed
 
   const handleAddEquipment = () => {
     setEditingEquipment(null);
