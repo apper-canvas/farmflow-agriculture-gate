@@ -1,50 +1,76 @@
-import equipmentData from '../mockData/equipment.json';
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Mock service for equipment management
+// ApperClient-based equipment service for database integration
 export const equipmentService = {
-  // Get all equipment
+  // Get ApperClient instance
+  getApperClient() {
+    const { ApperClient } = window.ApperSDK;
+    return new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
+  },
+
+  // Get all equipment with filtering and pagination
   async getAllEquipment(filters = {}) {
     try {
-      await delay(300);
-      
-      let filteredData = [...equipmentData];
-      
-      // Apply search filter
+      const apperClient = this.getApperClient();
+      const tableName = 'equipment_c';
+
+      // Build query parameters
+      const params = {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "equipmentName_c"}},
+          {"field": {"Name": "description_c"}},
+          {"field": {"Name": "serialNumber_c"}},
+          {"field": {"Name": "manufacturer_c"}},
+          {"field": {"Name": "model_c"}},
+          {"field": {"Name": "purchaseDate_c"}},
+          {"field": {"Name": "cost_c"}},
+          {"field": {"Name": "location_c"}},
+          {"field": {"Name": "status_c"}}
+        ],
+        orderBy: [{"fieldName": "equipmentName_c", "sorttype": "ASC"}],
+        pagingInfo: {"limit": 20, "offset": 0}
+      };
+
+      // Add search filter using whereGroups for multiple field search
       if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        filteredData = filteredData.filter(item => 
-          item.name?.toLowerCase().includes(searchTerm) ||
-          item.model?.toLowerCase().includes(searchTerm) ||
-          item.manufacturer?.toLowerCase().includes(searchTerm) ||
-          item.serial_number?.toLowerCase().includes(searchTerm) ||
-          item.equipment_type?.toLowerCase().includes(searchTerm)
-        );
+        params.whereGroups = [{
+          "operator": "OR",
+          "subGroups": [
+            {
+              "conditions": [
+                {"fieldName": "equipmentName_c", "operator": "Contains", "values": [filters.search]},
+                {"fieldName": "manufacturer_c", "operator": "Contains", "values": [filters.search]},
+                {"fieldName": "model_c", "operator": "Contains", "values": [filters.search]},
+                {"fieldName": "serialNumber_c", "operator": "Contains", "values": [filters.search]}
+              ],
+              "operator": "OR"
+            }
+          ]
+        }];
       }
-      
-      // Apply equipment type filter
-      if (filters.equipmentType) {
-        filteredData = filteredData.filter(item => 
-          item.equipment_type === filters.equipmentType
-        );
-      }
-      
-      // Apply maintenance status filter
-      if (filters.maintenanceStatus) {
-        filteredData = filteredData.filter(item => 
-          item.maintenance_status === filters.maintenanceStatus
-        );
-      }
-      
-      // Apply status filter
+
+      // Add status filter
       if (filters.status) {
-        filteredData = filteredData.filter(item => 
-          item.status === filters.status
-        );
+        const statusFilter = {"FieldName": "status_c", "Operator": "EqualTo", "Values": [filters.status], "Include": true};
+        if (params.where) {
+          params.where.push(statusFilter);
+        } else {
+          params.where = [statusFilter];
+        }
       }
-      
-      return filteredData;
+
+      const response = await apperClient.fetchRecords(tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching equipment:', error);
       throw error;
@@ -54,64 +80,147 @@ export const equipmentService = {
   // Get equipment by ID
   async getEquipmentById(equipmentId) {
     try {
-      await delay(200);
-      
-      const equipment = equipmentData.find(item => item.Id === parseInt(equipmentId));
-      
-      if (!equipment) {
+      const apperClient = this.getApperClient();
+      const tableName = 'equipment_c';
+
+      const params = {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "equipmentName_c"}},
+          {"field": {"Name": "description_c"}},
+          {"field": {"Name": "serialNumber_c"}},
+          {"field": {"Name": "manufacturer_c"}},
+          {"field": {"Name": "model_c"}},
+          {"field": {"Name": "purchaseDate_c"}},
+          {"field": {"Name": "cost_c"}},
+          {"field": {"Name": "location_c"}},
+          {"field": {"Name": "status_c"}}
+        ]
+      };
+
+      const response = await apperClient.getRecordById(tableName, parseInt(equipmentId), params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (!response.data) {
         throw new Error('Equipment not found');
       }
-      
-      return equipment;
+
+      return response.data;
     } catch (error) {
       console.error(`Error fetching equipment ${equipmentId}:`, error);
       throw error;
     }
   },
 
-  // Create new equipment
+  // Create new equipment - only use Updateable fields
   async createEquipment(equipmentData) {
     try {
-      await delay(400);
-      
-      // Generate new ID
-      const maxId = Math.max(...equipmentData.map(item => item.Id), 0);
-      const newEquipment = {
-        ...equipmentData,
-        Id: maxId + 1,
-        purchase_date: new Date().toISOString().split('T')[0],
-        last_maintenance: null,
-        next_maintenance: null,
-        hours_operated: 0
+      const apperClient = this.getApperClient();
+      const tableName = 'equipment_c';
+
+      // Only include Updateable fields according to database schema
+      const params = {
+        records: [{
+          Name: equipmentData.equipmentName_c || '',
+          Tags: equipmentData.Tags || '',
+          equipmentName_c: equipmentData.equipmentName_c || '',
+          description_c: equipmentData.description_c || '',
+          serialNumber_c: equipmentData.serialNumber_c || '',
+          manufacturer_c: equipmentData.manufacturer_c || '',
+          model_c: equipmentData.model_c || '',
+          purchaseDate_c: equipmentData.purchaseDate_c || null,
+          cost_c: parseFloat(equipmentData.cost_c) || 0,
+          location_c: equipmentData.location_c || '',
+          status_c: equipmentData.status_c || 'Active'
+        }]
       };
-      
-      // In a real app, this would persist to database
-      return newEquipment;
+
+      const response = await apperClient.createRecord(tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to create equipment:`, failed);
+          failed.forEach(record => {
+            record.errors?.forEach(error => {
+              throw new Error(`${error.fieldLabel || 'Field'}: ${error.message || error}`);
+            });
+            if (record.message) throw new Error(record.message);
+          });
+        }
+
+        return successful.length > 0 ? successful[0].data : null;
+      }
+
+      return null;
     } catch (error) {
       console.error('Error creating equipment:', error);
       throw error;
     }
   },
 
-  // Update equipment
+  // Update equipment - only use Updateable fields
   async updateEquipment(equipmentId, updatedData) {
     try {
-      await delay(400);
-      
-      const existingEquipment = equipmentData.find(item => item.Id === parseInt(equipmentId));
-      
-      if (!existingEquipment) {
-        throw new Error('Equipment not found');
-      }
-      
-      const updatedEquipment = {
-        ...existingEquipment,
-        ...updatedData,
-        Id: parseInt(equipmentId) // Ensure ID doesn't change
+      const apperClient = this.getApperClient();
+      const tableName = 'equipment_c';
+
+      // Only include Updateable fields according to database schema
+      const params = {
+        records: [{
+          Id: parseInt(equipmentId),
+          Name: updatedData.equipmentName_c || '',
+          Tags: updatedData.Tags || '',
+          equipmentName_c: updatedData.equipmentName_c || '',
+          description_c: updatedData.description_c || '',
+          serialNumber_c: updatedData.serialNumber_c || '',
+          manufacturer_c: updatedData.manufacturer_c || '',
+          model_c: updatedData.model_c || '',
+          purchaseDate_c: updatedData.purchaseDate_c || null,
+          cost_c: parseFloat(updatedData.cost_c) || 0,
+          location_c: updatedData.location_c || '',
+          status_c: updatedData.status_c || 'Active'
+        }]
       };
-      
-      // In a real app, this would persist to database
-      return updatedEquipment;
+
+      const response = await apperClient.updateRecord(tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to update equipment:`, failed);
+          failed.forEach(record => {
+            record.errors?.forEach(error => {
+              throw new Error(`${error.fieldLabel || 'Field'}: ${error.message || error}`);
+            });
+            if (record.message) throw new Error(record.message);
+          });
+        }
+
+        return successful.length > 0 ? successful[0].data : null;
+      }
+
+      return null;
     } catch (error) {
       console.error(`Error updating equipment ${equipmentId}:`, error);
       throw error;
@@ -121,15 +230,34 @@ export const equipmentService = {
   // Delete equipment
   async deleteEquipment(equipmentId) {
     try {
-      await delay(300);
-      
-      const equipmentIndex = equipmentData.findIndex(item => item.Id === parseInt(equipmentId));
-      
-      if (equipmentIndex === -1) {
-        throw new Error('Equipment not found');
+      const apperClient = this.getApperClient();
+      const tableName = 'equipment_c';
+
+      const params = {
+        RecordIds: [parseInt(equipmentId)]
+      };
+
+      const response = await apperClient.deleteRecord(tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
       }
-      
-      // In a real app, this would delete from database
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to delete equipment:`, failed);
+          failed.forEach(record => {
+            if (record.message) throw new Error(record.message);
+          });
+        }
+
+        return successful.length > 0;
+      }
+
       return true;
     } catch (error) {
       console.error('Error deleting equipment:', error);
@@ -140,34 +268,40 @@ export const equipmentService = {
   // Get equipment statistics
   async getEquipmentStats() {
     try {
-      await delay(250);
+      const apperClient = this.getApperClient();
+      const tableName = 'equipment_c';
+
+      // Get total count
+      const totalParams = {
+        fields: [{"field": {"Name": "Id"}}],
+        pagingInfo: {"limit": 1000, "offset": 0}
+      };
+
+      const totalResponse = await apperClient.fetchRecords(tableName, totalParams);
       
-      const totalEquipment = equipmentData.length;
-      const activeEquipment = equipmentData.filter(item => item.status === 'Active').length;
-      const maintenanceDue = equipmentData.filter(item => item.maintenance_status === 'Maintenance Due').length;
-      const totalValue = equipmentData.reduce((sum, item) => sum + (item.current_value || 0), 0);
-      
+      if (!totalResponse.success) {
+        console.error(totalResponse.message);
+        return { totalEquipment: 0, activeEquipment: 0, totalValue: 0 };
+      }
+
+      const allEquipment = totalResponse.data || [];
+      const totalEquipment = allEquipment.length;
+      const activeEquipment = allEquipment.filter(item => item.status_c === 'Active').length;
+      const totalValue = allEquipment.reduce((sum, item) => sum + (parseFloat(item.cost_c) || 0), 0);
+
       return {
         totalEquipment,
         activeEquipment,
-        maintenanceDue,
         totalValue
       };
     } catch (error) {
       console.error('Error fetching equipment stats:', error);
-      throw error;
+      return { totalEquipment: 0, activeEquipment: 0, totalValue: 0 };
     }
   },
 
-  // Get equipment types for filtering
-  getEquipmentTypes() {
-    const types = [...new Set(equipmentData.map(item => item.equipment_type))];
-    return types.sort();
-  },
-
-  // Get maintenance statuses for filtering
-  getMaintenanceStatuses() {
-    const statuses = [...new Set(equipmentData.map(item => item.maintenance_status))];
-    return statuses.sort();
+  // Get available status options from database schema
+  getStatusOptions() {
+    return ['Active', 'Inactive', 'Under Maintenance', 'Retired'];
   }
 };

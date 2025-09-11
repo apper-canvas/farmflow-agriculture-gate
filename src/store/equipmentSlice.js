@@ -46,7 +46,7 @@ export const equipmentSlice = createSlice({
       state.items.push(action.payload);
     },
     updateEquipment: (state, action) => {
-      const index = state.items.findIndex(item => item.Id === action.payload.Id);
+const index = state.items.findIndex(item => item.Id === action.payload.Id);
       if (index !== -1) {
         state.items[index] = action.payload;
       }

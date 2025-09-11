@@ -3,15 +3,7 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { equipmentService } from "@/services/api/equipmentService";
-import { 
-  setEquipment, 
-  setEquipmentError, 
-  setEquipmentLoading,
-  setEquipmentStats,
-  addEquipment,
-  updateEquipment,
-  removeEquipment
-} from "@/store/equipmentSlice";
+import { addEquipment, removeEquipment, setEquipment, setEquipmentError, setEquipmentLoading, setEquipmentStats, updateEquipment } from "@/store/equipmentSlice";
 import ApperIcon from "@/components/ApperIcon";
 import ErrorState from "@/components/molecules/ErrorState";
 import StatCard from "@/components/molecules/StatCard";
@@ -38,7 +30,7 @@ const Equipment = () => {
   const [showEquipmentForm, setShowEquipmentForm] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState(null);
   const [equipmentTypes, setEquipmentTypes] = useState([]);
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     name: '',
     model: '',
     manufacturer: '',
@@ -107,7 +99,7 @@ const Equipment = () => {
     setShowEquipmentForm(true);
   };
 
-  const handleEditEquipment = (equipment) => {
+const handleEditEquipment = (equipment) => {
     setEditingEquipment(equipment);
     setFormData({
       name: equipment.name || '',
@@ -147,7 +139,7 @@ const Equipment = () => {
     }
   };
 
-  const handleFormSubmit = async (e) => {
+const handleFormSubmit = async (e) => {
     e.preventDefault();
     
     try {
@@ -218,7 +210,7 @@ const Equipment = () => {
     }
   };
 
-  // Filter equipment based on search and filters
+// Filter equipment based on search and filters
   const filteredEquipment = items.filter(equipment => {
     const matchesSearch = !searchTerm || 
       equipment.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -395,7 +387,7 @@ const Equipment = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredEquipment.map((equipment) => {
+{filteredEquipment.map((equipment) => {
                   const maintenanceStatus = getMaintenanceStatus(equipment);
                   const operationalStatus = getOperationalStatus(equipment);
                   
