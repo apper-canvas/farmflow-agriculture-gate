@@ -1,14 +1,15 @@
-import Inventory from "@/components/pages/Inventory";
-import StorageLocations from "@/components/pages/StorageLocations";
-import StockMovements from "@/components/pages/StockMovements";
-import BatchTracking from "@/components/pages/BatchTracking";
+import Equipment from "@/components/pages/Equipment";
 import React from "react";
 import Finance from "@/components/pages/Finance";
+import Inventory from "@/components/pages/Inventory";
+import BatchTracking from "@/components/pages/BatchTracking";
+import StockMovements from "@/components/pages/StockMovements";
 import Dashboard from "@/components/pages/Dashboard";
 import Crops from "@/components/pages/Crops";
 import Weather from "@/components/pages/Weather";
 import Farms from "@/components/pages/Farms";
 import Tasks from "@/components/pages/Tasks";
+import StorageLocations from "@/components/pages/StorageLocations";
 
 export const routes = {
   dashboard: {
@@ -74,12 +75,19 @@ weather: {
     icon: 'TrendingUp',
     component: StockMovements
   },
-  batchTracking: {
+batchTracking: {
     id: 'batch-tracking',
     label: 'Batch Tracking',
     path: '/inventory/batches',
     icon: 'Package',
     component: BatchTracking
+  },
+  equipment: {
+    id: 'equipment',
+    label: 'Equipment',
+    path: '/equipment',
+    icon: 'Wrench',
+    component: Equipment
   }
 };
 
