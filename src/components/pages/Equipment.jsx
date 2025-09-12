@@ -3,18 +3,19 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { equipmentService } from "@/services/api/equipmentService";
-import farmService from "@/services/api/farmService";
 import { addEquipment, removeEquipment, setEquipment, setEquipmentError, setEquipmentLoading, setEquipmentStats, updateEquipment } from "@/store/equipmentSlice";
+import farmService from "@/services/api/farmService";
 import ApperIcon from "@/components/ApperIcon";
-import ErrorState from "@/components/molecules/ErrorState";
-import StatCard from "@/components/molecules/StatCard";
+import Inventory from "@/components/pages/Inventory";
 import EmptyState from "@/components/molecules/EmptyState";
+import StatCard from "@/components/molecules/StatCard";
+import ErrorState from "@/components/molecules/ErrorState";
 import SkeletonLoader from "@/components/molecules/SkeletonLoader";
+import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
+import Card from "@/components/atoms/Card";
 import Badge from "@/components/atoms/Badge";
 import Select from "@/components/atoms/Select";
-import Card from "@/components/atoms/Card";
-import Button from "@/components/atoms/Button";
 
 const Equipment = () => {
   const dispatch = useDispatch();
@@ -33,19 +34,17 @@ const Equipment = () => {
 const [equipmentTypes, setEquipmentTypes] = useState([]);
   const [farms, setFarms] = useState([]);
 const [formData, setFormData] = useState({
-    name: '',
-    model: '',
-    manufacturer: '',
-    equipment_type: '',
-    serial_number: '',
-    purchase_price: '',
-    current_value: '',
+    equipmentName_c: '',
+    model_c: '',
+    manufacturer_c: '',
+    description_c: '',
+    serialNumber_c: '',
+    cost_c: '',
+    purchaseDate_c: '',
     status_c: 'Active',
     maintenanceStatus_c: 'Scheduled',
-    fuel_type: '',
-    location: '',
-    notes: '',
-    farm: ''
+    location_c: '',
+    farm_c: ''
   });
 
   // Load initial data
@@ -92,20 +91,18 @@ loadEquipmentData();
 
   const handleAddEquipment = () => {
     setEditingEquipment(null);
-    setFormData({
-      name: '',
-      model: '',
-      manufacturer: '',
-      equipment_type: '',
-      serial_number: '',
-      purchase_price: '',
-      current_value: '',
-      status: 'Active',
-maintenance_status: 'Up to Date',
-      fuel_type: '',
-      location: '',
-      notes: '',
-      farm: ''
+setFormData({
+      equipmentName_c: '',
+      model_c: '',
+      manufacturer_c: '',
+      description_c: '',
+      serialNumber_c: '',
+      cost_c: '',
+      purchaseDate_c: '',
+      status_c: 'Active',
+      maintenanceStatus_c: 'Not Required',
+      location_c: '',
+      farm_c: ''
     });
     setShowEquipmentForm(true);
   };
@@ -113,19 +110,17 @@ maintenance_status: 'Up to Date',
 const handleEditEquipment = (equipment) => {
     setEditingEquipment(equipment);
     setFormData({
-      name: equipment.name || '',
-      model: equipment.model || '',
-      manufacturer: equipment.manufacturer || '',
-      equipment_type: equipment.equipment_type || '',
-      serial_number: equipment.serial_number || '',
-      purchase_price: equipment.purchase_price || '',
-      current_value: equipment.current_value || '',
-      status: equipment.status || 'Active',
-      maintenance_status: equipment.maintenance_status || 'Up to Date',
-      fuel_type: equipment.fuel_type || '',
-location: equipment.location || '',
-      notes: equipment.notes || '',
-      farm: equipment.farm_c || ''
+equipmentName_c: equipment.equipmentName_c || equipment.Name || '',
+      model_c: equipment.model_c || '',
+      manufacturer_c: equipment.manufacturer_c || '',
+      description_c: equipment.description_c || '',
+      serialNumber_c: equipment.serialNumber_c || '',
+      cost_c: equipment.cost_c || '',
+      purchaseDate_c: equipment.purchaseDate_c || '',
+      status_c: equipment.status_c || 'Active',
+      maintenanceStatus_c: equipment.maintenanceStatus_c || 'Not Required',
+      location_c: equipment.location_c || '',
+      farm_c: equipment.farm_c?.Id || equipment.farm_c || ''
     });
     setShowEquipmentForm(true);
   };
@@ -160,10 +155,18 @@ const handleFormSubmit = async (e) => {
       if (editingEquipment) {
         // Update existing equipment
 result = await equipmentService.updateEquipment(editingEquipment.Id, {
-          ...formData,
-          farm_c: formData.farm,
-          purchase_price: parseFloat(formData.purchase_price) || 0,
-          current_value: parseFloat(formData.current_value) || 0
+          equipmentName_c: formData.equipmentName_c,
+          Tags: formData.Tags || '',
+          description_c: formData.description_c,
+          serialNumber_c: formData.serialNumber_c,
+          manufacturer_c: formData.manufacturer_c,
+          model_c: formData.model_c,
+          purchaseDate_c: formData.purchaseDate_c || null,
+          cost_c: parseFloat(formData.cost_c) || 0,
+          location_c: formData.location_c,
+          status_c: formData.status_c,
+          maintenanceStatus_c: formData.maintenanceStatus_c,
+          farm_c: formData.farm_c ? parseInt(formData.farm_c) : null
         });
         
         // Update Redux state
@@ -172,10 +175,18 @@ result = await equipmentService.updateEquipment(editingEquipment.Id, {
       } else {
         // Create new equipment
 result = await equipmentService.createEquipment({
-          ...formData,
-          farm_c: formData.farm,
-          purchase_price: parseFloat(formData.purchase_price) || 0,
-          current_value: parseFloat(formData.current_value) || 0
+equipmentName_c: formData.equipmentName_c,
+          Tags: formData.Tags || '',
+          description_c: formData.description_c,
+          serialNumber_c: formData.serialNumber_c,
+          manufacturer_c: formData.manufacturer_c,
+          model_c: formData.model_c,
+          purchaseDate_c: formData.purchaseDate_c || null,
+          cost_c: parseFloat(formData.cost_c) || 0,
+          location_c: formData.location_c,
+          status_c: formData.status_c,
+          maintenanceStatus_c: formData.maintenanceStatus_c,
+          farm_c: formData.farm_c ? parseInt(formData.farm_c) : null
         });
         
         // Update Redux state
@@ -202,38 +213,43 @@ result = await equipmentService.createEquipment({
     }));
   };
 
-  const getMaintenanceStatus = (equipment) => {
-    const status = equipment.maintenance_status;
-    if (status === 'Maintenance Due') {
-      return { color: 'warning', label: 'Maintenance Due' };
-    } else if (status === 'In Service') {
-      return { color: 'error', label: 'In Service' };
+const getMaintenanceStatus = (equipment) => {
+    const status = equipment.maintenanceStatus_c;
+    if (status === 'In Progress') {
+      return { color: 'warning', label: 'In Progress' };
+    } else if (status === 'Scheduled') {
+      return { color: 'info', label: 'Scheduled' };
+    } else if (status === 'Completed') {
+      return { color: 'success', label: 'Completed' };
     } else {
-      return { color: 'success', label: 'Up to Date' };
+      return { color: 'success', label: 'Not Required' };
     }
   };
 
   const getOperationalStatus = (equipment) => {
-    const status = equipment.status;
-    if (status === 'Under Repair') {
-      return { color: 'error', label: 'Under Repair' };
+const status = equipment.status_c;
+    if (status === 'Under Maintenance') {
+      return { color: 'warning', label: 'Under Maintenance' };
     } else if (status === 'Inactive') {
       return { color: 'warning', label: 'Inactive' };
+    } else if (status === 'Retired') {
+      return { color: 'error', label: 'Retired' };
     } else {
       return { color: 'success', label: 'Active' };
     }
   };
 
 // Filter equipment based on search and filters
-  const filteredEquipment = items.filter(equipment => {
+const filteredEquipment = items.filter(equipment => {
     const matchesSearch = !searchTerm || 
-      equipment.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      equipment.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      equipment.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      equipment.serial_number?.toLowerCase().includes(searchTerm.toLowerCase());
+      equipment.equipmentName_c?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      equipment.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      equipment.model_c?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      equipment.manufacturer_c?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      equipment.serialNumber_c?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = !filterType || equipment.equipment_type === filterType;
-    const matchesStatus = !filterStatus || equipment.status === filterStatus;
+    const matchesStatus = !filterStatus || equipment.status_c === filterStatus;
     
     return matchesSearch && matchesType && matchesStatus;
   });
@@ -302,9 +318,10 @@ result = await equipmentService.createEquipment({
             className="w-full"
           >
             <option value="">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Under Repair">Under Repair</option>
+<option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
+            <option value="Under Maintenance">Under Maintenance</option>
+            <option value="Retired">Retired</option>
           </Select>
           <div className="flex items-center gap-2">
             <Button
@@ -414,11 +431,11 @@ result = await equipmentService.createEquipment({
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {equipment.name}
-                          </div>
+<div className="text-sm font-medium text-gray-900">
+                            {equipment.equipmentName_c || equipment.Name}
+</div>
                           <div className="text-sm text-gray-500">
-                            {equipment.manufacturer} {equipment.model}
+                            {equipment.manufacturer_c || ''} {equipment.model_c || ''}
                           </div>
                         </div>
                       </td>
@@ -436,12 +453,12 @@ result = await equipmentService.createEquipment({
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">
-                          ${(equipment.current_value || 0).toLocaleString()}
+<span className="text-sm text-gray-900">
+                          ${(equipment.cost_c || 0).toLocaleString()}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-500">{equipment.location || 'N/A'}</span>
+<span className="text-sm text-gray-500">{equipment.location_c || 'N/A'}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center gap-2">
@@ -481,106 +498,91 @@ result = await equipmentService.createEquipment({
             
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
+<Input
                   label="Equipment Name"
-                  value={formData.name}
-                  onChange={(e) => handleFormChange('name', e.target.value)}
+                  value={formData.equipmentName_c}
+                  onChange={(e) => handleFormChange('equipmentName_c', e.target.value)}
                   required
                 />
-                <Select
-                  label="Equipment Type"
-                  value={formData.equipment_type}
-                  onChange={(e) => handleFormChange('equipment_type', e.target.value)}
-                  required
-                >
-                  <option value="">Select Type</option>
-                  {equipmentTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </Select>
                 <Input
                   label="Manufacturer"
-                  value={formData.manufacturer}
-                  onChange={(e) => handleFormChange('manufacturer', e.target.value)}
+                  value={formData.manufacturer_c}
+                  onChange={(e) => handleFormChange('manufacturer_c', e.target.value)}
                   required
                 />
                 <Input
                   label="Model"
-                  value={formData.model}
-                  onChange={(e) => handleFormChange('model', e.target.value)}
+                  value={formData.model_c}
+                  onChange={(e) => handleFormChange('model_c', e.target.value)}
                   required
                 />
                 <Input
                   label="Serial Number"
-                  value={formData.serial_number}
-                  onChange={(e) => handleFormChange('serial_number', e.target.value)}
+value={formData.serialNumber_c}
+                  onChange={(e) => handleFormChange('serialNumber_c', e.target.value)}
+                />
+<Input
+                  label="Purchase Date"
+                  type="date"
+                  value={formData.purchaseDate_c}
+                  onChange={(e) => handleFormChange('purchaseDate_c', e.target.value)}
                 />
                 <Input
-                  label="Purchase Price"
+                  label="Cost"
                   type="number"
                   step="0.01"
-                  value={formData.purchase_price}
-                  onChange={(e) => handleFormChange('purchase_price', e.target.value)}
-                />
-                <Input
-                  label="Current Value"
-                  type="number"
-                  step="0.01"
-                  value={formData.current_value}
-                  onChange={(e) => handleFormChange('current_value', e.target.value)}
-                />
-<Select
-                          label="Farm"
-                          value={formData.farm}
-                          onChange={(e) => handleFormChange('farm', e.target.value)}
-                          options={farms.map(farm => ({
-                            value: farm.Id,
-                            label: farm.name
-                          }))}
-                          placeholder="Select a farm..."
-                          required={false}
-                        />
-<Select
-                          label="Status"
-                          value={formData.status_c}
-                          onChange={(e) => handleFormChange('status_c', e.target.value)}
-                        >
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                          <option value="Under Maintenance">Under Maintenance</option>
-                          <option value="Retired">Retired</option>
-                        </Select>
-<Select
-                          label="Maintenance Status"
-                          value={formData.maintenanceStatus_c}
-                          onChange={(e) => handleFormChange('maintenanceStatus_c', e.target.value)}
-                        >
-                          <option value="Scheduled">Scheduled</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Completed">Completed</option>
-                          <option value="Not Required">Not Required</option>
-                        </Select>
-                <Input
-                  label="Fuel Type"
-                  value={formData.fuel_type}
-                  onChange={(e) => handleFormChange('fuel_type', e.target.value)}
+                  value={formData.cost_c}
+                  onChange={(e) => handleFormChange('cost_c', e.target.value)}
                 />
                 <Input
                   label="Location"
-                  value={formData.location}
-                  onChange={(e) => handleFormChange('location', e.target.value)}
+                  value={formData.location_c}
+                  onChange={(e) => handleFormChange('location_c', e.target.value)}
                 />
+                <Select
+                  label="Farm"
+                  value={formData.farm_c}
+                  onChange={(e) => handleFormChange('farm_c', e.target.value)}
+                  required={false}
+                >
+                  <option value="">Select a farm...</option>
+                  {farms.map(farm => (
+                    <option key={farm.Id} value={farm.Id}>
+                      {farm.Name || farm.name}
+                    </option>
+                  ))}
+                </Select>
+                <Select
+                  label="Status"
+                  value={formData.status_c}
+                  onChange={(e) => handleFormChange('status_c', e.target.value)}
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Under Maintenance">Under Maintenance</option>
+                  <option value="Retired">Retired</option>
+                </Select>
+                <Select
+                  label="Maintenance Status"
+                  value={formData.maintenanceStatus_c}
+                  onChange={(e) => handleFormChange('maintenanceStatus_c', e.target.value)}
+                >
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Not Required">Not Required</option>
+                </Select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notes
+                  Description
                 </label>
                 <textarea
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                   rows={3}
-                  value={formData.notes}
-                  onChange={(e) => handleFormChange('notes', e.target.value)}
+                  value={formData.description_c}
+onChange={(e) => handleFormChange('description_c', e.target.value)}
                 />
               </div>
               

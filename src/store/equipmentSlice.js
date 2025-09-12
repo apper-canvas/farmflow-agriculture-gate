@@ -16,7 +16,7 @@ const initialState = {
   stats: {
     totalEquipment: 0,
     activeEquipment: 0,
-    maintenanceDue: 0,
+maintenanceDue: 0,
     totalValue: 0
   },
   alerts: {

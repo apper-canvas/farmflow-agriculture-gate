@@ -30,7 +30,8 @@ export const equipmentService = {
           {"field": {"Name": "cost_c"}},
           {"field": {"Name": "location_c"}},
           {"field": {"Name": "status_c"}},
-          {"field": {"Name": "maintenanceStatus_c"}}
+          {"field": {"Name": "maintenanceStatus_c"}},
+          {"field": {"Name": "farm_c"}, "referenceField": {"field": {"Name": "Name"}}}
         ],
         orderBy: [{"fieldName": "equipmentName_c", "sorttype": "ASC"}],
         pagingInfo: {"limit": 20, "offset": 0}
@@ -87,7 +88,7 @@ export const equipmentService = {
       const params = {
 fields: [
           {"field": {"Name": "Id"}},
-          {"field": {"Name": "Name"}},
+{"field": {"Name": "Name"}},
           {"field": {"Name": "Tags"}},
           {"field": {"Name": "equipmentName_c"}},
           {"field": {"Name": "description_c"}},
@@ -98,7 +99,8 @@ fields: [
           {"field": {"Name": "cost_c"}},
           {"field": {"Name": "location_c"}},
           {"field": {"Name": "status_c"}},
-          {"field": {"Name": "maintenanceStatus_c"}}
+          {"field": {"Name": "maintenanceStatus_c"}},
+          {"field": {"Name": "farm_c"}, "referenceField": {"field": {"Name": "Name"}}}
         ]
       };
 
@@ -140,7 +142,8 @@ Name: equipmentData.equipmentName_c || '',
           cost_c: parseFloat(equipmentData.cost_c) || 0,
           location_c: equipmentData.location_c || '',
           status_c: equipmentData.status_c || 'Active',
-          maintenanceStatus_c: equipmentData.maintenanceStatus_c || 'Not Required'
+          maintenanceStatus_c: equipmentData.maintenanceStatus_c || 'Not Required',
+          farm_c: equipmentData.farm_c ? parseInt(equipmentData.farm_c) : null
         }]
       };
 
@@ -184,7 +187,7 @@ Name: equipmentData.equipmentName_c || '',
 // Only include Updateable fields according to database schema
       const params = {
         records: [{
-          Id: parseInt(equipmentId),
+Id: parseInt(equipmentId),
           Name: updatedData.equipmentName_c || '',
           Tags: updatedData.Tags || '',
           equipmentName_c: updatedData.equipmentName_c || '',
@@ -196,7 +199,8 @@ Name: equipmentData.equipmentName_c || '',
           cost_c: parseFloat(updatedData.cost_c) || 0,
           location_c: updatedData.location_c || '',
           status_c: updatedData.status_c || 'Active',
-          maintenanceStatus_c: updatedData.maintenanceStatus_c || 'Not Required'
+          maintenanceStatus_c: updatedData.maintenanceStatus_c || 'Not Required',
+          farm_c: updatedData.farm_c ? parseInt(updatedData.farm_c) : null
         }]
       };
 
@@ -290,12 +294,16 @@ Name: equipmentData.equipmentName_c || '',
 
       const allEquipment = totalResponse.data || [];
       const totalEquipment = allEquipment.length;
-      const activeEquipment = allEquipment.filter(item => item.status_c === 'Active').length;
+const activeEquipment = allEquipment.filter(item => item.status_c === 'Active').length;
+      const maintenanceDue = allEquipment.filter(item => 
+        item.maintenanceStatus_c === 'Scheduled' || item.maintenanceStatus_c === 'In Progress'
+      ).length;
       const totalValue = allEquipment.reduce((sum, item) => sum + (parseFloat(item.cost_c) || 0), 0);
 
       return {
         totalEquipment,
         activeEquipment,
+        maintenanceDue,
         totalValue
       };
     } catch (error) {
