@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { equipmentService } from "@/services/api/equipmentService";
-import { farmService } from "@/services/api/farmService";
+import farmService from "@/services/api/farmService";
 import { addEquipment, removeEquipment, setEquipment, setEquipmentError, setEquipmentLoading, setEquipmentStats, updateEquipment } from "@/store/equipmentSlice";
 import ApperIcon from "@/components/ApperIcon";
 import ErrorState from "@/components/molecules/ErrorState";
