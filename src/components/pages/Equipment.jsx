@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { equipmentService } from "@/services/api/equipmentService";
+import { farmService } from "@/services/api/farmService";
 import { addEquipment, removeEquipment, setEquipment, setEquipmentError, setEquipmentLoading, setEquipmentStats, updateEquipment } from "@/store/equipmentSlice";
 import ApperIcon from "@/components/ApperIcon";
 import ErrorState from "@/components/molecules/ErrorState";
@@ -29,7 +30,8 @@ const Equipment = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [showEquipmentForm, setShowEquipmentForm] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState(null);
-  const [equipmentTypes, setEquipmentTypes] = useState([]);
+const [equipmentTypes, setEquipmentTypes] = useState([]);
+  const [farms, setFarms] = useState([]);
 const [formData, setFormData] = useState({
     name: '',
     model: '',
@@ -42,12 +44,14 @@ const [formData, setFormData] = useState({
     maintenance_status: 'Up to Date',
     fuel_type: '',
     location: '',
-    notes: ''
+    notes: '',
+    farm: ''
   });
 
   // Load initial data
 useEffect(() => {
-    loadEquipmentData();
+loadEquipmentData();
+    loadFarms();
     // Set equipment types immediately
     setEquipmentTypes(['Tractor', 'Harvester', 'Planter', 'Cultivator', 'Irrigation', 'Storage', 'Transport', 'Tools']);
   }, []);
@@ -74,6 +78,18 @@ useEffect(() => {
 
 // Equipment types are set directly in useEffect - no async loading needed
 
+  // Load farms for dropdown
+  async function loadFarms() {
+    try {
+      const farmData = await farmService.getAll();
+      setFarms(farmData);
+    } catch (error) {
+      console.error('Error loading farms:', error);
+      toast.error('Failed to load farms');
+      setFarms([]);
+    }
+  }
+
   const handleAddEquipment = () => {
     setEditingEquipment(null);
     setFormData({
@@ -85,10 +101,11 @@ useEffect(() => {
       purchase_price: '',
       current_value: '',
       status: 'Active',
-      maintenance_status: 'Up to Date',
+maintenance_status: 'Up to Date',
       fuel_type: '',
       location: '',
-      notes: ''
+      notes: '',
+      farm: ''
     });
     setShowEquipmentForm(true);
   };
@@ -106,8 +123,9 @@ const handleEditEquipment = (equipment) => {
       status: equipment.status || 'Active',
       maintenance_status: equipment.maintenance_status || 'Up to Date',
       fuel_type: equipment.fuel_type || '',
-      location: equipment.location || '',
-      notes: equipment.notes || ''
+location: equipment.location || '',
+      notes: equipment.notes || '',
+      farm: equipment.farm_c || ''
     });
     setShowEquipmentForm(true);
   };
@@ -141,8 +159,9 @@ const handleFormSubmit = async (e) => {
       
       if (editingEquipment) {
         // Update existing equipment
-        result = await equipmentService.updateEquipment(editingEquipment.Id, {
+result = await equipmentService.updateEquipment(editingEquipment.Id, {
           ...formData,
+          farm_c: formData.farm,
           purchase_price: parseFloat(formData.purchase_price) || 0,
           current_value: parseFloat(formData.current_value) || 0
         });
@@ -152,8 +171,9 @@ const handleFormSubmit = async (e) => {
         toast.success('Equipment updated successfully');
       } else {
         // Create new equipment
-        result = await equipmentService.createEquipment({
+result = await equipmentService.createEquipment({
           ...formData,
+          farm_c: formData.farm,
           purchase_price: parseFloat(formData.purchase_price) || 0,
           current_value: parseFloat(formData.current_value) || 0
         });
@@ -510,6 +530,17 @@ const handleFormSubmit = async (e) => {
                   onChange={(e) => handleFormChange('current_value', e.target.value)}
                 />
 <Select
+                          label="Farm"
+                          value={formData.farm}
+                          onChange={(e) => handleFormChange('farm', e.target.value)}
+                          options={farms.map(farm => ({
+                            value: farm.Id,
+                            label: farm.name
+                          }))}
+                          placeholder="Select a farm..."
+                          required={false}
+                        />
+                        <Select
                   label="Status"
                   value={formData.status_c}
                   onChange={(e) => handleFormChange('status_c', e.target.value)}
