@@ -306,7 +306,7 @@ const filteredEquipment = items.filter(equipment => {
             className="w-full"
           >
             <option value="">All Equipment Types</option>
-            {equipmentTypes.map(type => (
+{equipmentTypes.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
           </Select>
@@ -316,7 +316,7 @@ const filteredEquipment = items.filter(equipment => {
             className="w-full"
           >
             <option value="">All Status</option>
-<option value="Active">Active</option>
+            <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
             <option value="Under Maintenance">Under Maintenance</option>
             <option value="Retired">Retired</option>
@@ -550,7 +550,7 @@ const filteredEquipment = items.filter(equipment => {
                     </option>
                   ))}
                 </Select>
-                <Select
+<Select
                   label="Status"
                   value={formData.status_c}
                   onChange={(e) => handleFormChange('status_c', e.target.value)}
@@ -560,7 +560,7 @@ const filteredEquipment = items.filter(equipment => {
                   <option value="Under Maintenance">Under Maintenance</option>
                   <option value="Retired">Retired</option>
                 </Select>
-                <Select
+<Select
                   label="Maintenance Status"
                   value={formData.maintenanceStatus_c}
                   onChange={(e) => handleFormChange('maintenanceStatus_c', e.target.value)}

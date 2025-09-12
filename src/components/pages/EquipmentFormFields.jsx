@@ -27,14 +27,14 @@ const EquipmentFormFields = ({ formData, handleFormChange }) => {
   }, []);
 
   // Prepare options for Select components
-  const statusOptions = [
+const statusOptions = [
     { value: 'Active', label: 'Active' },
     { value: 'Inactive', label: 'Inactive' },
     { value: 'Under Maintenance', label: 'Under Maintenance' },
     { value: 'Retired', label: 'Retired' }
   ];
 
-  const maintenanceStatusOptions = [
+const maintenanceStatusOptions = [
     { value: 'Scheduled', label: 'Scheduled' },
     { value: 'In Progress', label: 'In Progress' },
     { value: 'Completed', label: 'Completed' },
