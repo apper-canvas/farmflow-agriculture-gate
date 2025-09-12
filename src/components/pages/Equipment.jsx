@@ -40,8 +40,8 @@ const [formData, setFormData] = useState({
     serial_number: '',
     purchase_price: '',
     current_value: '',
-    status: 'Active',
-    maintenance_status: 'Up to Date',
+    status_c: 'Active',
+    maintenanceStatus_c: 'Scheduled',
     fuel_type: '',
     location: '',
     notes: '',
@@ -540,26 +540,26 @@ result = await equipmentService.createEquipment({
                           placeholder="Select a farm..."
                           required={false}
                         />
-                        <Select
-label="Status"
-                  value={formData.status_c}
-                  onChange={(e) => handleFormChange('status_c', e.target.value)}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Under Maintenance">Under Maintenance</option>
-                  <option value="Retired">Retired</option>
-                </Select>
 <Select
-                  label="Maintenance Status"
-                  value={formData.maintenanceStatus_c}
-                  onChange={(e) => handleFormChange('maintenanceStatus_c', e.target.value)}
-                >
-                  <option value="Scheduled">Scheduled</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Not Required">Not Required</option>
-                </Select>
+                          label="Status"
+                          value={formData.status_c}
+                          onChange={(e) => handleFormChange('status_c', e.target.value)}
+                        >
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                          <option value="Under Maintenance">Under Maintenance</option>
+                          <option value="Retired">Retired</option>
+                        </Select>
+<Select
+                          label="Maintenance Status"
+                          value={formData.maintenanceStatus_c}
+                          onChange={(e) => handleFormChange('maintenanceStatus_c', e.target.value)}
+                        >
+                          <option value="Scheduled">Scheduled</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Not Required">Not Required</option>
+                        </Select>
                 <Input
                   label="Fuel Type"
                   value={formData.fuel_type}
