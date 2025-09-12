@@ -6,7 +6,6 @@ import { equipmentService } from "@/services/api/equipmentService";
 import { addEquipment, removeEquipment, setEquipment, setEquipmentError, setEquipmentLoading, setEquipmentStats, updateEquipment } from "@/store/equipmentSlice";
 import farmService from "@/services/api/farmService";
 import ApperIcon from "@/components/ApperIcon";
-import Inventory from "@/components/pages/Inventory";
 import EmptyState from "@/components/molecules/EmptyState";
 import StatCard from "@/components/molecules/StatCard";
 import ErrorState from "@/components/molecules/ErrorState";
@@ -30,9 +29,9 @@ const Equipment = () => {
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [showEquipmentForm, setShowEquipmentForm] = useState(false);
-  const [editingEquipment, setEditingEquipment] = useState(null);
+const [editingEquipment, setEditingEquipment] = useState(null);
 const [equipmentTypes, setEquipmentTypes] = useState([]);
-  const [farms, setFarms] = useState([]);
+const [farms, setFarms] = useState([]);
 const [formData, setFormData] = useState({
     equipmentName_c: '',
     model_c: '',
@@ -42,11 +41,10 @@ const [formData, setFormData] = useState({
     cost_c: '',
     purchaseDate_c: '',
     status_c: 'Active',
-    maintenanceStatus_c: 'Scheduled',
+    maintenanceStatus_c: 'Not Required',
     location_c: '',
     farm_c: ''
   });
-
   // Load initial data
 useEffect(() => {
 loadEquipmentData();
@@ -516,9 +514,9 @@ const filteredEquipment = items.filter(equipment => {
                   onChange={(e) => handleFormChange('model_c', e.target.value)}
                   required
                 />
-                <Input
+<Input
                   label="Serial Number"
-value={formData.serialNumber_c}
+                  value={formData.serialNumber_c}
                   onChange={(e) => handleFormChange('serialNumber_c', e.target.value)}
                 />
 <Input
