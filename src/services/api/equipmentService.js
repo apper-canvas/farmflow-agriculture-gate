@@ -18,7 +18,7 @@ export const equipmentService = {
       // Build query parameters
       const params = {
         fields: [
-          {"field": {"Name": "Id"}},
+{"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "Tags"}},
           {"field": {"Name": "equipmentName_c"}},
@@ -29,7 +29,8 @@ export const equipmentService = {
           {"field": {"Name": "purchaseDate_c"}},
           {"field": {"Name": "cost_c"}},
           {"field": {"Name": "location_c"}},
-          {"field": {"Name": "status_c"}}
+          {"field": {"Name": "status_c"}},
+          {"field": {"Name": "maintenanceStatus_c"}}
         ],
         orderBy: [{"fieldName": "equipmentName_c", "sorttype": "ASC"}],
         pagingInfo: {"limit": 20, "offset": 0}
@@ -84,7 +85,7 @@ export const equipmentService = {
       const tableName = 'equipment_c';
 
       const params = {
-        fields: [
+fields: [
           {"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "Tags"}},
@@ -96,7 +97,8 @@ export const equipmentService = {
           {"field": {"Name": "purchaseDate_c"}},
           {"field": {"Name": "cost_c"}},
           {"field": {"Name": "location_c"}},
-          {"field": {"Name": "status_c"}}
+          {"field": {"Name": "status_c"}},
+          {"field": {"Name": "maintenanceStatus_c"}}
         ]
       };
 
@@ -127,7 +129,7 @@ export const equipmentService = {
       // Only include Updateable fields according to database schema
       const params = {
         records: [{
-          Name: equipmentData.equipmentName_c || '',
+Name: equipmentData.equipmentName_c || '',
           Tags: equipmentData.Tags || '',
           equipmentName_c: equipmentData.equipmentName_c || '',
           description_c: equipmentData.description_c || '',
@@ -137,7 +139,8 @@ export const equipmentService = {
           purchaseDate_c: equipmentData.purchaseDate_c || null,
           cost_c: parseFloat(equipmentData.cost_c) || 0,
           location_c: equipmentData.location_c || '',
-          status_c: equipmentData.status_c || 'Active'
+          status_c: equipmentData.status_c || 'Active',
+          maintenanceStatus_c: equipmentData.maintenanceStatus_c || 'Not Required'
         }]
       };
 
@@ -178,7 +181,7 @@ export const equipmentService = {
       const apperClient = this.getApperClient();
       const tableName = 'equipment_c';
 
-      // Only include Updateable fields according to database schema
+// Only include Updateable fields according to database schema
       const params = {
         records: [{
           Id: parseInt(equipmentId),
@@ -192,7 +195,8 @@ export const equipmentService = {
           purchaseDate_c: updatedData.purchaseDate_c || null,
           cost_c: parseFloat(updatedData.cost_c) || 0,
           location_c: updatedData.location_c || '',
-          status_c: updatedData.status_c || 'Active'
+          status_c: updatedData.status_c || 'Active',
+          maintenanceStatus_c: updatedData.maintenanceStatus_c || 'Not Required'
         }]
       };
 

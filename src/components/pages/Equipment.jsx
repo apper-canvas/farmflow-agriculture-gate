@@ -541,7 +541,7 @@ result = await equipmentService.createEquipment({
                           required={false}
                         />
                         <Select
-                  label="Status"
+label="Status"
                   value={formData.status_c}
                   onChange={(e) => handleFormChange('status_c', e.target.value)}
                 >
